@@ -26,6 +26,7 @@ import {
   X,
 } from 'lucide-react'
 import { AreaChart, BarChart, StatCard } from './Charts'
+import { SOCIAL_FIELDS } from '../SocialLinks'
 import { formatUSD } from '../../lib/whatsapp'
 import { ALL_ORDER_STATUSES } from '../../lib/orders'
 import { authClient } from '../../lib/auth-client'
@@ -313,6 +314,11 @@ export default function AdminDashboard() {
     bankAccount: '',
     bankHolder: '',
     bankId: '',
+    socialInstagram: '',
+    socialFacebook: '',
+    socialTiktok: '',
+    socialYoutube: '',
+    socialX: '',
   })
   const [savingSettings, setSavingSettings] = useState(false)
   const [settingsMsg, setSettingsMsg] = useState(null)
@@ -346,6 +352,11 @@ export default function AdminDashboard() {
           bankAccount: s.bank?.numero || '',
           bankHolder: s.bank?.titular || '',
           bankId: s.bank?.identificacion || '',
+          socialInstagram: s.social?.instagram || '',
+          socialFacebook: s.social?.facebook || '',
+          socialTiktok: s.social?.tiktok || '',
+          socialYoutube: s.social?.youtube || '',
+          socialX: s.social?.x || '',
         })
       }
     } finally {
@@ -985,6 +996,36 @@ export default function AdminDashboard() {
                           <label className="label">RUC / Cédula</label>
                           <input className="input" value={settingsForm.bankId} onChange={(e) => setSettingsForm((f) => ({ ...f, bankId: e.target.value }))} />
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 border-t border-kuyay-green/10 pt-6">
+                      <h3 className="font-display text-base font-black text-kuyay-forest">
+                        Redes sociales
+                      </h3>
+                      <p className="mt-1 text-xs text-kuyay-deep/50">
+                        Pega el enlace completo de cada red. Las que dejes vacías no se muestran.
+                      </p>
+                      <div className="mt-4 space-y-4">
+                        {SOCIAL_FIELDS.map((f) => {
+                          const fieldKey = `social${f.key.charAt(0).toUpperCase()}${f.key.slice(1)}`
+                          return (
+                            <div key={f.key} className="flex items-center gap-3">
+                              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-kuyay-lime/40 text-kuyay-forest">
+                                <f.Icon className="h-5 w-5" />
+                              </span>
+                              <div className="flex-1">
+                                <label className="label">{f.label}</label>
+                                <input
+                                  className="input"
+                                  value={settingsForm[fieldKey] || ''}
+                                  onChange={(e) => setSettingsForm((s) => ({ ...s, [fieldKey]: e.target.value }))}
+                                  placeholder={f.placeholder}
+                                />
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
 

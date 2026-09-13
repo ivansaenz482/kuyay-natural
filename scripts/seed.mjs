@@ -95,6 +95,11 @@ async function seedSettings() {
     bank_account: process.env.NEXT_PUBLIC_BANK_ACCOUNT || '2200000000',
     bank_holder: process.env.NEXT_PUBLIC_BANK_HOLDER || 'Kuyay Natural',
     bank_id: process.env.NEXT_PUBLIC_BANK_ID || '1790000000001',
+    social_instagram: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM || '',
+    social_facebook: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK || '',
+    social_tiktok: process.env.NEXT_PUBLIC_SOCIAL_TIKTOK || '',
+    social_youtube: process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE || '',
+    social_x: process.env.NEXT_PUBLIC_SOCIAL_X || '',
   }
   for (const [key, value] of Object.entries(defaults)) {
     await pool.query(

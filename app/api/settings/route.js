@@ -13,6 +13,11 @@ function defaults() {
     bank_account: process.env.NEXT_PUBLIC_BANK_ACCOUNT || '2200000000',
     bank_holder: process.env.NEXT_PUBLIC_BANK_HOLDER || 'Kuyay Natural',
     bank_id: process.env.NEXT_PUBLIC_BANK_ID || '1790000000001',
+    social_instagram: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM || '',
+    social_facebook: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK || '',
+    social_tiktok: process.env.NEXT_PUBLIC_SOCIAL_TIKTOK || '',
+    social_youtube: process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE || '',
+    social_x: process.env.NEXT_PUBLIC_SOCIAL_X || '',
   }
 }
 
@@ -27,6 +32,13 @@ function toPublic(map) {
       numero: map.bank_account || d.bank_account,
       titular: map.bank_holder || d.bank_holder,
       identificacion: map.bank_id || d.bank_id,
+    },
+    social: {
+      instagram: map.social_instagram ?? d.social_instagram,
+      facebook: map.social_facebook ?? d.social_facebook,
+      tiktok: map.social_tiktok ?? d.social_tiktok,
+      youtube: map.social_youtube ?? d.social_youtube,
+      x: map.social_x ?? d.social_x,
     },
   }
 }
@@ -53,6 +65,11 @@ export async function PUT(req) {
     if (body.bankAccount != null) entries.bank_account = String(body.bankAccount)
     if (body.bankHolder != null) entries.bank_holder = String(body.bankHolder)
     if (body.bankId != null) entries.bank_id = String(body.bankId)
+    if (body.socialInstagram != null) entries.social_instagram = String(body.socialInstagram).trim()
+    if (body.socialFacebook != null) entries.social_facebook = String(body.socialFacebook).trim()
+    if (body.socialTiktok != null) entries.social_tiktok = String(body.socialTiktok).trim()
+    if (body.socialYoutube != null) entries.social_youtube = String(body.socialYoutube).trim()
+    if (body.socialX != null) entries.social_x = String(body.socialX).trim()
     await setSettings(entries)
     return NextResponse.json(toPublic(await getSettings()))
   } catch (error) {

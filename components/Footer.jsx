@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowUpRight, Code2, Lock } from 'lucide-react'
 import WhatsAppIcon from './WhatsAppIcon'
+import SocialLinks from './SocialLinks'
 import { useSettings } from '../context/SettingsContext'
 
 export default function Footer() {
@@ -40,6 +41,7 @@ export default function Footer() {
                 </a>
               ))}
             </div>
+            <SocialLinks className="mt-4" />
           </div>
 
           <div>

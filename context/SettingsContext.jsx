@@ -3,7 +3,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { DEFAULT_BANK, DEFAULT_NUMBERS } from '../lib/whatsapp'
 
-const DEFAULTS = { numbers: DEFAULT_NUMBERS, bank: DEFAULT_BANK }
+const EMPTY_SOCIAL = { instagram: '', facebook: '', tiktok: '', youtube: '', x: '' }
+
+const DEFAULTS = { numbers: DEFAULT_NUMBERS, bank: DEFAULT_BANK, social: EMPTY_SOCIAL }
 
 const SettingsContext = createContext({ ...DEFAULTS, refresh: () => {} })
 
@@ -18,6 +20,7 @@ export function SettingsProvider({ children }) {
       setState({
         numbers: [data.whatsappPrimary, data.whatsappSecondary].filter(Boolean),
         bank: data.bank || DEFAULT_BANK,
+        social: { ...EMPTY_SOCIAL, ...(data.social || {}) },
       })
     } catch {
       /* mantiene los valores por defecto */
