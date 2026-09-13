@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic'
 
 function defaults() {
   return {
-    whatsapp_primary: process.env.NEXT_PUBLIC_WHATSAPP_PRIMARY || '593991028834',
-    whatsapp_secondary: process.env.NEXT_PUBLIC_WHATSAPP_SECONDARY || '593994395266',
+    whatsapp_primary: process.env.NEXT_PUBLIC_WHATSAPP_PRIMARY || '593967598834',
+    whatsapp_secondary: '',
     bank_accounts: JSON.stringify([
       {
         banco: process.env.NEXT_PUBLIC_BANK_NAME || 'Banco Pichincha',
@@ -52,7 +52,7 @@ function toPublic(map) {
   const bool = (v) => v === undefined || v === null ? true : v === 'true' || v === true
   return {
     whatsappPrimary: map.whatsapp_primary || d.whatsapp_primary,
-    whatsappSecondary: map.whatsapp_secondary || d.whatsapp_secondary,
+    whatsappSecondary: '',
     bankAccounts: parseAccounts(map.bank_accounts, d),
     payment: {
       deuna: {
@@ -95,7 +95,7 @@ export async function PUT(req) {
     const entries = {}
 
     if (body.whatsappPrimary != null) entries.whatsapp_primary = onlyDigits(body.whatsappPrimary)
-    if (body.whatsappSecondary != null) entries.whatsapp_secondary = onlyDigits(body.whatsappSecondary)
+    entries.whatsapp_secondary = ''
 
     if (Array.isArray(body.bankAccounts)) {
       entries.bank_accounts = JSON.stringify(

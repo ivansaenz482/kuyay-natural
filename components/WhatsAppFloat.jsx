@@ -4,38 +4,38 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { useSettings } from '../context/SettingsContext'
+import { formatPhone } from '../lib/whatsapp'
 import WhatsAppIcon from './WhatsAppIcon'
-
-const LABELS = ['Pedidos · +593 99 102 8834', 'Consultas · +593 99 439 5266']
 
 export default function WhatsAppFloat() {
   const [open, setOpen] = useState(false)
   const { numbers } = useSettings()
+  const phone = numbers[0]
 
   return (
     <div className="fixed bottom-6 right-5 z-[55] flex flex-col items-end gap-3">
       <AnimatePresence>
-        {open &&
-          numbers.map((num, i) => (
-            <motion.a
-              key={num}
-              initial={{ opacity: 0, y: 12, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.9 }}
-              transition={{ delay: i * 0.05 }}
-              href={`https://wa.me/${num}?text=${encodeURIComponent(
-                '¡Hola Kuyay Natural! 🌿 Quiero hacer un pedido.',
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass flex items-center gap-2.5 rounded-full py-2.5 pl-3 pr-4 shadow-card transition hover:-translate-y-0.5"
-            >
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#25D366] text-white">
-                <WhatsAppIcon className="h-4 w-4" />
-              </span>
-              <span className="text-xs font-bold text-kuyay-forest">{LABELS[i] || `+${num}`}</span>
-            </motion.a>
-          ))}
+        {open && phone && (
+          <motion.a
+            key={phone}
+            initial={{ opacity: 0, y: 12, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.9 }}
+            href={`https://wa.me/${phone}?text=${encodeURIComponent(
+              '¡Hola Kuyay Natural! 🌿 Quiero hacer un pedido.',
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="glass flex items-center gap-2.5 rounded-full py-2.5 pl-3 pr-4 shadow-card transition hover:-translate-y-0.5"
+          >
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-[#25D366] text-white">
+              <WhatsAppIcon className="h-4 w-4" />
+            </span>
+            <span className="text-xs font-bold text-kuyay-forest">
+              Escríbenos · {formatPhone(phone)}
+            </span>
+          </motion.a>
+        )}
       </AnimatePresence>
 
       <motion.button

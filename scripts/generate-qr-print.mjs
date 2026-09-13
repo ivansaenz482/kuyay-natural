@@ -10,7 +10,7 @@ const QR = readFileSync(join(root, 'public', 'qr-kuyay.png'))
 const LOGO = readFileSync(join(root, 'public', 'images', 'logo.jpeg'))
 
 const FONT = "'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
-const WA = '+593 99 102 8834  ·  +593 99 439 5266'
+const WA = '+593 96 759 8834'
 const WEB = 'kuyay-natural.vercel.app'
 
 function frame(o) {

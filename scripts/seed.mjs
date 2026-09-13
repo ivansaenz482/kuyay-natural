@@ -88,8 +88,8 @@ async function seedCatalog() {
 
 async function seedSettings() {
   const defaults = {
-    whatsapp_primary: process.env.NEXT_PUBLIC_WHATSAPP_PRIMARY || '593991028834',
-    whatsapp_secondary: process.env.NEXT_PUBLIC_WHATSAPP_SECONDARY || '593994395266',
+    whatsapp_primary: process.env.NEXT_PUBLIC_WHATSAPP_PRIMARY || '593967598834',
+    whatsapp_secondary: '',
     bank_accounts: JSON.stringify([
       {
         banco: process.env.NEXT_PUBLIC_BANK_NAME || 'Banco Pichincha',

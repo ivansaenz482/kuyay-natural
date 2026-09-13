@@ -350,7 +350,7 @@ export default function AdminDashboard() {
         const s = await settingsRes.json()
         setSettingsForm({
           whatsappPrimary: s.whatsappPrimary || '',
-          whatsappSecondary: s.whatsappSecondary || '',
+          whatsappSecondary: '',
           bankAccounts: Array.isArray(s.bankAccounts) && s.bankAccounts.length
             ? s.bankAccounts
             : [{ banco: '', tipo: '', numero: '', titular: '', identificacion: '' }],
@@ -960,34 +960,24 @@ export default function AdminDashboard() {
                           Números de WhatsApp
                         </h2>
                         <p className="text-xs text-kuyay-deep/50">
-                          El primero es el número de <strong>pedidos</strong> (recibe todos los pedidos).
+                          Este es el único número de la tienda: recibe todos los pedidos y consultas.
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    <div className="mt-6 max-w-sm">
                       <div>
-                        <label className="label">WhatsApp de pedidos</label>
+                        <label className="label">WhatsApp de la tienda</label>
                         <input
                           className="input"
                           inputMode="numeric"
                           value={settingsForm.whatsappPrimary}
                           onChange={(e) => setSettingsForm((f) => ({ ...f, whatsappPrimary: e.target.value }))}
-                          placeholder="593991028834"
+                          placeholder="593967598834"
                         />
                         <p className="mt-1 text-xs text-kuyay-deep/45">
-                          Formato: código de país + número, sin espacios (ej. 593991028834)
+                          Formato: código de país + número, sin espacios (ej. 593967598834)
                         </p>
-                      </div>
-                      <div>
-                        <label className="label">WhatsApp secundario</label>
-                        <input
-                          className="input"
-                          inputMode="numeric"
-                          value={settingsForm.whatsappSecondary}
-                          onChange={(e) => setSettingsForm((f) => ({ ...f, whatsappSecondary: e.target.value }))}
-                          placeholder="593994395266"
-                        />
                       </div>
                     </div>
 
