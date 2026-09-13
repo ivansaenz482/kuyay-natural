@@ -1,0 +1,889 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  BarChart3,
+  DollarSign,
+  Eye,
+  ImagePlus,
+  KeyRound,
+  LayoutDashboard,
+  Leaf,
+  Loader2,
+  LogOut,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Star,
+  Tags,
+  Trash2,
+  TrendingUp,
+  X,
+} from 'lucide-react'
+import { AreaChart, BarChart, StatCard } from './Charts'
+import { formatUSD } from '../../lib/whatsapp'
+import { authClient } from '../../lib/auth-client'
+
+const TABS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'orders', label: 'Pedidos', icon: ShoppingCart },
+  { id: 'products', label: 'Productos', icon: Package },
+  { id: 'categories', label: 'Categorías', icon: Tags },
+  { id: 'security', label: 'Seguridad', icon: KeyRound },
+]
+
+const EMPTY_PRODUCT = {
+  name: '',
+  slug: '',
+  categoryId: '',
+  price: '',
+  oldPrice: '',
+  unit: '',
+  badge: '',
+  rating: 5,
+  reviews: 0,
+  stock: 0,
+  featured: false,
+  active: true,
+  short: '',
+  description: '',
+  benefitsText: '',
+  ingredients: '',
+  images: [],
+}
+
+/* ------------------------------- Login ------------------------------- */
+function LoginScreen({ onSuccess }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    const { error: authError } = await authClient.signIn.email({ email, password })
+    setLoading(false)
+    if (authError) {
+      setError(authError.message || 'Credenciales incorrectas.')
+      return
+    }
+    onSuccess()
+  }
+
+  return (
+    <div className="relative grid min-h-screen place-items-center overflow-hidden bg-kuyay-forest px-5">
+      <img src="/images/variedad.jpeg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+      <div className="absolute inset-0 bg-gradient-to-br from-kuyay-forest via-kuyay-deep to-kuyay-green/60" />
+      <div className="absolute inset-0 bg-grain opacity-10 mix-blend-overlay" />
+
+      <motion.form
+        onSubmit={submit}
+        initial={{ opacity: 0, y: 30, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="relative w-full max-w-sm rounded-[2rem] border border-white/15 bg-white/10 p-8 shadow-card backdrop-blur-xl"
+      >
+        <span className="mx-auto grid h-16 w-16 place-items-center overflow-hidden rounded-2xl ring-2 ring-kuyay-lime/50">
+          <img src="/images/logo.jpeg" alt="Kuyay Natural" className="h-full w-full object-cover" />
+        </span>
+        <h1 className="mt-5 text-center font-display text-2xl font-black text-white">
+          Panel Administrador
+        </h1>
+        <p className="mt-1 text-center text-sm text-white/60">Kuyay Natural · acceso restringido</p>
+
+        <label className="mt-7 block text-xs font-bold uppercase tracking-wider text-kuyay-lime" htmlFor="email">
+          Correo
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="admin@kuyaynatural.com"
+          autoFocus
+          className="mt-2 w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-kuyay-lime focus:ring-4 focus:ring-kuyay-lime/20"
+        />
+
+        <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-kuyay-lime" htmlFor="password">
+          Contraseña
+        </label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          className="mt-2 w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-kuyay-lime focus:ring-4 focus:ring-kuyay-lime/20"
+        />
+
+        {error && (
+          <p className="mt-3 rounded-xl bg-kuyay-berry/20 px-4 py-2 text-xs font-semibold text-white">
+            {error}
+          </p>
+        )}
+
+        <button type="submit" disabled={loading} className="btn-gold mt-5 w-full">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ingresar'}
+        </button>
+
+        <Link href="/" className="mt-4 block text-center text-xs font-semibold text-white/60 hover:text-kuyay-lime">
+          ← Volver a la tienda
+        </Link>
+      </motion.form>
+    </div>
+  )
+}
+
+/* ------------------------------- Modal ------------------------------- */
+function Modal({ open, onClose, title, children, wide }) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-kuyay-forest/60 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className={`relative z-10 max-h-[92vh] w-full overflow-y-auto rounded-t-[2rem] bg-kuyay-cream shadow-card sm:rounded-[2rem] ${
+              wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'
+            }`}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-kuyay-green/10 bg-kuyay-cream/95 px-6 py-4 backdrop-blur">
+              <h3 className="font-display text-lg font-black text-kuyay-forest">{title}</h3>
+              <button
+                onClick={onClose}
+                aria-label="Cerrar"
+                className="grid h-9 w-9 place-items-center rounded-full text-kuyay-deep/60 transition hover:bg-kuyay-sand"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6">{children}</div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+/* --------------------------- Image uploader -------------------------- */
+function ImageUploader({ images, onChange }) {
+  const inputRef = useRef(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  const upload = async (fileList) => {
+    const files = Array.from(fileList || [])
+    if (!files.length) return
+    setUploading(true)
+    setError('')
+    try {
+      const formData = new FormData()
+      files.forEach((f) => formData.append('files', f))
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Error al subir')
+      onChange([...images, ...data.urls])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
+
+  const remove = (url) => onChange(images.filter((u) => u !== url))
+  const makeCover = (url) => onChange([url, ...images.filter((u) => u !== url)])
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-3">
+        {images.map((url, i) => (
+          <div key={url + i} className="group relative h-24 w-24 overflow-hidden rounded-2xl border border-kuyay-green/15">
+            <img src={url} alt="" className="h-full w-full object-cover" />
+            {i === 0 && (
+              <span className="absolute left-1 top-1 rounded-full bg-kuyay-gold px-2 py-0.5 text-[9px] font-black text-kuyay-forest">
+                Portada
+              </span>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-kuyay-forest/70 opacity-0 transition group-hover:opacity-100">
+              {i !== 0 && (
+                <button
+                  type="button"
+                  onClick={() => makeCover(url)}
+                  title="Usar como portada"
+                  className="grid h-7 w-7 place-items-center rounded-full bg-white text-kuyay-forest"
+                >
+                  <Star className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => remove(url)}
+                title="Eliminar"
+                className="grid h-7 w-7 place-items-center rounded-full bg-kuyay-berry text-white"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="grid h-24 w-24 place-items-center rounded-2xl border-2 border-dashed border-kuyay-green/30 text-kuyay-green transition hover:border-kuyay-green hover:bg-kuyay-lime/20"
+        >
+          {uploading ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : (
+            <span className="flex flex-col items-center gap-1 text-[10px] font-bold">
+              <ImagePlus className="h-5 w-5" />
+              Subir fotos
+            </span>
+          )}
+        </button>
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => upload(e.target.files)}
+      />
+      <p className="mt-2 text-xs text-kuyay-deep/50">
+        Puedes subir todas las fotos que quieras (JPG, PNG, WEBP). La primera es la portada.
+      </p>
+      {error && <p className="mt-2 text-xs font-semibold text-kuyay-berry">{error}</p>}
+    </div>
+  )
+}
+
+/* ------------------------------ Admin -------------------------------- */
+export default function AdminDashboard() {
+  const { data: session, isPending } = authClient.useSession()
+  const [tab, setTab] = useState('dashboard')
+  const [stats, setStats] = useState(null)
+  const [orders, setOrders] = useState([])
+  const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const [productModal, setProductModal] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
+  const [productForm, setProductForm] = useState(EMPTY_PRODUCT)
+  const [savingProduct, setSavingProduct] = useState(false)
+
+  const [categoryModal, setCategoryModal] = useState(false)
+  const [editingCategory, setEditingCategory] = useState(null)
+  const [categoryForm, setCategoryForm] = useState({ name: '', emoji: '🌿', sortOrder: 0 })
+  const [savingCategory, setSavingCategory] = useState(false)
+
+  const [security, setSecurity] = useState({ current: '', next: '', confirm: '', msg: null })
+
+  const loadAll = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [statsRes, ordersRes, productsRes, categoriesRes] = await Promise.all([
+        fetch('/api/stats'),
+        fetch('/api/orders'),
+        fetch('/api/products?all=true'),
+        fetch('/api/categories'),
+      ])
+      if (statsRes.ok) setStats(await statsRes.json())
+      if (ordersRes.ok) setOrders(await ordersRes.json())
+      if (productsRes.ok) setProducts(await productsRes.json())
+      if (categoriesRes.ok) setCategories(await categoriesRes.json())
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (session?.user) loadAll()
+  }, [session?.user, loadAll])
+
+  const dailyData = useMemo(() => {
+    if (!stats?.daily) return []
+    return stats.daily.map((d) => ({
+      label: new Date(d.date + 'T00:00:00').toLocaleDateString('es-EC', { weekday: 'short' }).slice(0, 3),
+      value: Number(d.views),
+    }))
+  }, [stats])
+
+  if (isPending) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-kuyay-cream">
+        <Loader2 className="h-8 w-8 animate-spin text-kuyay-green" />
+      </div>
+    )
+  }
+
+  if (!session?.user) return <LoginScreen onSuccess={loadAll} />
+
+  /* -------- Product handlers -------- */
+  const openNewProduct = () => {
+    setEditingProduct(null)
+    setProductForm({ ...EMPTY_PRODUCT, categoryId: categories[0]?.id || '' })
+    setProductModal(true)
+  }
+
+  const openEditProduct = (p) => {
+    setEditingProduct(p)
+    setProductForm({
+      ...p,
+      oldPrice: p.oldPrice ?? '',
+      benefitsText: (p.benefits || []).join(', '),
+    })
+    setProductModal(true)
+  }
+
+  const saveProduct = async (e) => {
+    e.preventDefault()
+    setSavingProduct(true)
+    const payload = {
+      name: productForm.name,
+      slug: productForm.slug,
+      categoryId: productForm.categoryId || null,
+      price: Number(productForm.price) || 0,
+      oldPrice: productForm.oldPrice ? Number(productForm.oldPrice) : null,
+      unit: productForm.unit,
+      badge: productForm.badge,
+      rating: Number(productForm.rating) || 5,
+      reviews: Number(productForm.reviews) || 0,
+      stock: Number(productForm.stock) || 0,
+      featured: Boolean(productForm.featured),
+      active: productForm.active !== false,
+      short: productForm.short,
+      description: productForm.description,
+      benefits: productForm.benefitsText
+        .split(',')
+        .map((b) => b.trim())
+        .filter(Boolean),
+      ingredients: productForm.ingredients,
+      images: productForm.images,
+    }
+    const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products'
+    const res = await fetch(url, {
+      method: editingProduct ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    setSavingProduct(false)
+    if (res.ok) {
+      setProductModal(false)
+      loadAll()
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'No se pudo guardar el producto')
+    }
+  }
+
+  const deleteProduct = async (p) => {
+    if (!confirm(`¿Eliminar "${p.name}"? Esta acción no se puede deshacer.`)) return
+    await fetch(`/api/products/${p.id}`, { method: 'DELETE' })
+    loadAll()
+  }
+
+  /* -------- Category handlers -------- */
+  const openNewCategory = () => {
+    setEditingCategory(null)
+    setCategoryForm({ name: '', emoji: '🌿', sortOrder: categories.length + 1 })
+    setCategoryModal(true)
+  }
+  const openEditCategory = (c) => {
+    setEditingCategory(c)
+    setCategoryForm({ name: c.name, emoji: c.emoji || '🌿', sortOrder: c.sortOrder ?? 0 })
+    setCategoryModal(true)
+  }
+  const saveCategory = async (e) => {
+    e.preventDefault()
+    setSavingCategory(true)
+    const url = editingCategory ? `/api/categories/${editingCategory.id}` : '/api/categories'
+    const res = await fetch(url, {
+      method: editingCategory ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(categoryForm),
+    })
+    setSavingCategory(false)
+    if (res.ok) {
+      setCategoryModal(false)
+      loadAll()
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'No se pudo guardar la categoría')
+    }
+  }
+  const deleteCategory = async (c) => {
+    if (!confirm(`¿Eliminar la categoría "${c.name}"?`)) return
+    await fetch(`/api/categories/${c.id}`, { method: 'DELETE' })
+    loadAll()
+  }
+
+  /* -------- Security -------- */
+  const changePassword = async (e) => {
+    e.preventDefault()
+    if (security.next.length < 6) {
+      setSecurity((s) => ({ ...s, msg: { type: 'error', text: 'La nueva clave debe tener al menos 6 caracteres.' } }))
+      return
+    }
+    if (security.next !== security.confirm) {
+      setSecurity((s) => ({ ...s, msg: { type: 'error', text: 'Las contraseñas no coinciden.' } }))
+      return
+    }
+    const { error } = await authClient.changePassword({
+      currentPassword: security.current,
+      newPassword: security.next,
+    })
+    setSecurity({
+      current: '',
+      next: '',
+      confirm: '',
+      msg: error
+        ? { type: 'error', text: error.message || 'No se pudo cambiar la contraseña.' }
+        : { type: 'ok', text: 'Contraseña actualizada correctamente.' },
+    })
+  }
+
+  return (
+    <div className="min-h-screen bg-kuyay-cream">
+      <div className="flex min-h-screen flex-col lg:flex-row">
+        {/* Sidebar */}
+        <aside className="border-b border-kuyay-green/10 bg-kuyay-forest p-5 text-white lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:shrink-0 lg:border-b-0">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-2xl ring-2 ring-kuyay-lime/40">
+              <img src="/images/logo.jpeg" alt="" className="h-full w-full object-cover" />
+            </span>
+            <div>
+              <p className="font-display text-lg font-black">Kuyay</p>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-kuyay-lime">Admin</p>
+            </div>
+          </div>
+
+          <nav className="mt-6 flex gap-2 overflow-x-auto lg:mt-10 lg:flex-col lg:overflow-visible">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex shrink-0 items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                  tab === t.id ? 'bg-kuyay-lime/20 text-kuyay-lime' : 'text-white/70 hover:bg-white/10'
+                }`}
+              >
+                <t.icon className="h-4 w-4" />
+                {t.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="mt-6 hidden lg:block">
+            <p className="mb-2 px-4 text-xs text-white/40">{session.user.email}</p>
+            <button
+              onClick={() => authClient.signOut()}
+              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <LogOut className="h-4 w-4" /> Cerrar sesión
+            </button>
+            <Link
+              href="/"
+              className="mt-1 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <Leaf className="h-4 w-4" /> Ver tienda
+            </Link>
+          </div>
+        </aside>
+
+        {/* Contenido */}
+        <main className="flex-1 p-5 sm:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="font-display text-2xl font-black text-kuyay-forest sm:text-3xl">
+                {TABS.find((t) => t.id === tab)?.label}
+              </h1>
+              <p className="mt-1 text-sm text-kuyay-deep/55">Resumen de tu tienda Kuyay Natural</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={loadAll} className="btn-ghost">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Actualizar'}
+              </button>
+              <button onClick={() => authClient.signOut()} className="btn-primary lg:hidden">
+                <LogOut className="h-4 w-4" /> Salir
+              </button>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+              className="mt-7"
+            >
+              {/* -------------------- DASHBOARD -------------------- */}
+              {tab === 'dashboard' && (
+                <div className="space-y-6">
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <StatCard icon={Eye} label="Vistas totales" value={(stats?.totalViews ?? 0).toLocaleString('es-EC')} hint={`${stats?.todayViews ?? 0} hoy · ${stats?.weekViews ?? 0} esta semana`} accent="green" />
+                    <StatCard icon={DollarSign} label="Ingresos registrados" value={formatUSD(stats?.revenue ?? 0)} hint={`${stats?.ordersCount ?? 0} pedidos`} accent="gold" delay={0.05} />
+                    <StatCard icon={Package} label="Productos activos" value={stats?.productsCount ?? 0} hint="En catálogo" accent="forest" delay={0.1} />
+                    <StatCard icon={TrendingUp} label="Categorías" value={categories.length} hint="Organización de la tienda" accent="berry" delay={0.15} />
+                  </div>
+
+                  <div className="grid gap-6 xl:grid-cols-2">
+                    <div className="rounded-3xl border border-kuyay-green/10 bg-white/80 p-6 shadow-soft">
+                      <div className="mb-5 flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5 text-kuyay-green" />
+                        <h2 className="font-display text-lg font-black text-kuyay-forest">Productos más vendidos</h2>
+                      </div>
+                      <BarChart
+                        data={(stats?.topSold || []).map((p) => ({ label: p.name, value: p.sales, image: p.image }))}
+                        valueFormatter={(v) => `${v} u.`}
+                      />
+                    </div>
+
+                    <div className="rounded-3xl border border-kuyay-green/10 bg-white/80 p-6 shadow-soft">
+                      <div className="mb-5 flex items-center gap-2">
+                        <Eye className="h-5 w-5 text-kuyay-berry" />
+                        <h2 className="font-display text-lg font-black text-kuyay-forest">Productos más vistos</h2>
+                      </div>
+                      <BarChart
+                        data={(stats?.topViewed || []).map((p) => ({ label: p.name, value: p.views, image: p.image }))}
+                        accent="from-kuyay-berry to-kuyay-rose"
+                        valueFormatter={(v) => `${v.toLocaleString('es-EC')} vistas`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+                    <div className="rounded-3xl border border-kuyay-green/10 bg-white/80 p-6 shadow-soft">
+                      <h2 className="mb-4 font-display text-lg font-black text-kuyay-forest">
+                        Visitas de la página · últimos 7 días
+                      </h2>
+                      <AreaChart data={dailyData} />
+                    </div>
+
+                    <div className="rounded-3xl border border-kuyay-green/10 bg-white/80 p-6 shadow-soft">
+                      <h2 className="mb-4 font-display text-lg font-black text-kuyay-forest">Pedidos recientes</h2>
+                      <div className="space-y-3">
+                        {(stats?.recentOrders || []).map((o) => (
+                          <div key={o.id} className="flex items-center justify-between rounded-2xl bg-kuyay-sand/50 px-4 py-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-bold text-kuyay-forest">{o.customer?.name || 'Cliente'}</p>
+                              <p className="text-xs text-kuyay-deep/50">{o.id} · {o.paymentMethod}</p>
+                            </div>
+                            <span className="shrink-0 font-display font-black text-kuyay-green">{formatUSD(o.total)}</span>
+                          </div>
+                        ))}
+                        {!stats?.recentOrders?.length && (
+                          <p className="py-6 text-center text-sm text-kuyay-deep/50">Aún no hay pedidos registrados.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* -------------------- PEDIDOS -------------------- */}
+              {tab === 'orders' && (
+                <div className="overflow-hidden rounded-3xl border border-kuyay-green/10 bg-white/80 shadow-soft">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[720px] text-left text-sm">
+                      <thead className="bg-kuyay-sand/60 text-xs uppercase tracking-wider text-kuyay-deep/55">
+                        <tr>
+                          <th className="px-5 py-3">Pedido</th>
+                          <th className="px-5 py-3">Cliente</th>
+                          <th className="px-5 py-3">Productos</th>
+                          <th className="px-5 py-3">Pago</th>
+                          <th className="px-5 py-3">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.map((o) => (
+                          <tr key={o.id} className="border-t border-kuyay-green/10">
+                            <td className="px-5 py-4 font-bold text-kuyay-forest">{o.id}</td>
+                            <td className="px-5 py-4">
+                              <p className="font-semibold text-kuyay-deep">{o.customer?.name}</p>
+                              <p className="text-xs text-kuyay-deep/50">{o.customer?.phone}</p>
+                            </td>
+                            <td className="px-5 py-4 text-kuyay-deep/70">
+                              {o.items?.map((i) => `${i.qty}x ${i.name}`).join(', ')}
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="rounded-full bg-kuyay-lime/50 px-3 py-1 text-xs font-bold capitalize text-kuyay-forest">
+                                {o.paymentMethod}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4 font-display font-black text-kuyay-green">{formatUSD(o.total)}</td>
+                          </tr>
+                        ))}
+                        {!orders.length && (
+                          <tr>
+                            <td colSpan={5} className="px-5 py-10 text-center text-kuyay-deep/50">Sin pedidos todavía.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* -------------------- PRODUCTOS -------------------- */}
+              {tab === 'products' && (
+                <div>
+                  <div className="mb-5 flex justify-end">
+                    <button onClick={openNewProduct} className="btn-primary">
+                      <Plus className="h-4 w-4" /> Nuevo producto
+                    </button>
+                  </div>
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                    {products.map((p) => (
+                      <div key={p.id} className="rounded-3xl border border-kuyay-green/10 bg-white/80 p-4 shadow-soft">
+                        <div className="flex gap-4">
+                          <img src={p.images?.[0] || '/images/logo.jpeg'} alt={p.name} className="h-20 w-20 rounded-2xl object-cover" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-bold text-kuyay-forest">{p.name}</p>
+                            <p className="text-xs text-kuyay-deep/50">{p.unit} · {p.categoryName || 'Sin categoría'}</p>
+                            <p className="mt-1 font-display text-lg font-black text-kuyay-green">{formatUSD(p.price)}</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                          <div className="rounded-xl bg-kuyay-sand/60 py-2">
+                            <p className="font-display font-black text-kuyay-forest">{p.sales || 0}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-kuyay-deep/45">Vendidos</p>
+                          </div>
+                          <div className="rounded-xl bg-kuyay-sand/60 py-2">
+                            <p className="font-display font-black text-kuyay-forest">{p.views || 0}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-kuyay-deep/45">Vistas</p>
+                          </div>
+                          <div className="rounded-xl bg-kuyay-sand/60 py-2">
+                            <p className="font-display font-black text-kuyay-forest">{p.stock ?? 0}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-kuyay-deep/45">Stock</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                          <button onClick={() => openEditProduct(p)} className="btn-ghost flex-1 !px-3 !py-2 text-xs">
+                            <Pencil className="h-3.5 w-3.5" /> Editar
+                          </button>
+                          <button
+                            onClick={() => deleteProduct(p)}
+                            className="grid h-9 w-9 place-items-center rounded-full border border-kuyay-berry/20 text-kuyay-berry transition hover:bg-kuyay-berry hover:text-white"
+                            aria-label="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* -------------------- CATEGORIAS -------------------- */}
+              {tab === 'categories' && (
+                <div>
+                  <div className="mb-5 flex justify-end">
+                    <button onClick={openNewCategory} className="btn-primary">
+                      <Plus className="h-4 w-4" /> Nueva categoría
+                    </button>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {categories.map((c) => (
+                      <div key={c.id} className="flex items-center gap-4 rounded-3xl border border-kuyay-green/10 bg-white/80 p-4 shadow-soft">
+                        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-kuyay-lime/50 text-2xl">
+                          {c.emoji || '🌿'}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-bold text-kuyay-forest">{c.name}</p>
+                          <p className="text-xs text-kuyay-deep/50">{c.productCount} productos · /{c.slug}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => openEditCategory(c)}
+                            className="grid h-9 w-9 place-items-center rounded-full border border-kuyay-green/20 text-kuyay-green transition hover:bg-kuyay-green hover:text-white"
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteCategory(c)}
+                            className="grid h-9 w-9 place-items-center rounded-full border border-kuyay-berry/20 text-kuyay-berry transition hover:bg-kuyay-berry hover:text-white"
+                            aria-label="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* -------------------- SEGURIDAD -------------------- */}
+              {tab === 'security' && (
+                <div className="max-w-lg">
+                  <form onSubmit={changePassword} className="rounded-3xl border border-kuyay-green/10 bg-white/80 p-6 shadow-soft">
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-kuyay-forest text-kuyay-lime">
+                        <KeyRound className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <h2 className="font-display text-lg font-black text-kuyay-forest">Cambiar contraseña</h2>
+                        <p className="text-xs text-kuyay-deep/50">Protege el acceso a tu panel administrador.</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 space-y-4">
+                      <div>
+                        <label className="label" htmlFor="cur">Contraseña actual</label>
+                        <input id="cur" type="password" className="input" value={security.current} onChange={(e) => setSecurity((s) => ({ ...s, current: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="label" htmlFor="new">Nueva contraseña</label>
+                        <input id="new" type="password" className="input" value={security.next} onChange={(e) => setSecurity((s) => ({ ...s, next: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="label" htmlFor="conf">Confirmar nueva contraseña</label>
+                        <input id="conf" type="password" className="input" value={security.confirm} onChange={(e) => setSecurity((s) => ({ ...s, confirm: e.target.value }))} />
+                      </div>
+                    </div>
+
+                    {security.msg && (
+                      <p className={`mt-4 rounded-xl px-4 py-2.5 text-sm font-semibold ${security.msg.type === 'ok' ? 'bg-kuyay-lime/40 text-kuyay-forest' : 'bg-kuyay-berry/10 text-kuyay-berry'}`}>
+                        {security.msg.text}
+                      </p>
+                    )}
+
+                    <button type="submit" className="btn-primary mt-5 w-full">Actualizar contraseña</button>
+                  </form>
+
+                  <p className="mt-4 text-xs text-kuyay-deep/50">
+                    La contraseña se guarda cifrada mediante Better Auth. Usuario actual: <span className="font-bold">{session.user.email}</span>
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      {/* Modal producto */}
+      <Modal open={productModal} onClose={() => setProductModal(false)} title={editingProduct ? 'Editar producto' : 'Nuevo producto'} wide>
+        <form onSubmit={saveProduct} className="space-y-4">
+          <div>
+            <label className="label">Fotos del producto</label>
+            <ImageUploader images={productForm.images} onChange={(images) => setProductForm((f) => ({ ...f, images }))} />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="label">Nombre *</label>
+              <input className="input" required value={productForm.name} onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Categoría</label>
+              <select className="input" value={productForm.categoryId || ''} onChange={(e) => setProductForm((f) => ({ ...f, categoryId: e.target.value }))}>
+                <option value="">Sin categoría</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label">Presentación / unidad</label>
+              <input className="input" value={productForm.unit || ''} onChange={(e) => setProductForm((f) => ({ ...f, unit: e.target.value }))} placeholder="Botella 1L" />
+            </div>
+            <div>
+              <label className="label">Precio (USD) *</label>
+              <input className="input" type="number" step="0.01" min="0" required value={productForm.price} onChange={(e) => setProductForm((f) => ({ ...f, price: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Precio anterior (opcional)</label>
+              <input className="input" type="number" step="0.01" min="0" value={productForm.oldPrice} onChange={(e) => setProductForm((f) => ({ ...f, oldPrice: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Etiqueta</label>
+              <input className="input" value={productForm.badge || ''} onChange={(e) => setProductForm((f) => ({ ...f, badge: e.target.value }))} placeholder="Más vendido" />
+            </div>
+            <div>
+              <label className="label">Stock</label>
+              <input className="input" type="number" min="0" value={productForm.stock} onChange={(e) => setProductForm((f) => ({ ...f, stock: e.target.value }))} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label">Descripción corta</label>
+              <input className="input" value={productForm.short || ''} onChange={(e) => setProductForm((f) => ({ ...f, short: e.target.value }))} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label">Descripción completa</label>
+              <textarea className="input resize-none" rows={3} value={productForm.description || ''} onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label">Beneficios (separados por coma)</label>
+              <input className="input" value={productForm.benefitsText} onChange={(e) => setProductForm((f) => ({ ...f, benefitsText: e.target.value }))} placeholder="Sin conservantes, Probiótico vivo" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label">Ingredientes</label>
+              <input className="input" value={productForm.ingredients || ''} onChange={(e) => setProductForm((f) => ({ ...f, ingredients: e.target.value }))} />
+            </div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-kuyay-deep">
+              <input type="checkbox" checked={productForm.featured} onChange={(e) => setProductForm((f) => ({ ...f, featured: e.target.checked }))} />
+              Destacado en el carrusel
+            </label>
+            <label className="flex items-center gap-2 text-sm font-semibold text-kuyay-deep">
+              <input type="checkbox" checked={productForm.active !== false} onChange={(e) => setProductForm((f) => ({ ...f, active: e.target.checked }))} />
+              Visible en la tienda
+            </label>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={() => setProductModal(false)} className="btn-ghost flex-1">Cancelar</button>
+            <button type="submit" disabled={savingProduct} className="btn-primary flex-1">
+              {savingProduct ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar producto'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal categoria */}
+      <Modal open={categoryModal} onClose={() => setCategoryModal(false)} title={editingCategory ? 'Editar categoría' : 'Nueva categoría'}>
+        <form onSubmit={saveCategory} className="space-y-4">
+          <div>
+            <label className="label">Nombre *</label>
+            <input className="input" required value={categoryForm.name} onChange={(e) => setCategoryForm((f) => ({ ...f, name: e.target.value }))} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Emoji</label>
+              <input className="input" value={categoryForm.emoji} onChange={(e) => setCategoryForm((f) => ({ ...f, emoji: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Orden</label>
+              <input className="input" type="number" value={categoryForm.sortOrder} onChange={(e) => setCategoryForm((f) => ({ ...f, sortOrder: e.target.value }))} />
+            </div>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={() => setCategoryModal(false)} className="btn-ghost flex-1">Cancelar</button>
+            <button type="submit" disabled={savingCategory} className="btn-primary flex-1">
+              {savingCategory ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar categoría'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  )
+}

@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-kuyay-cream font-sans text-kuyay-deep antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    @apply bg-kuyay-fresh/30 text-kuyay-forest;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-kuyay-sand;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-kuyay-leaf/60;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-kuyay-green;
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-kuyay-fresh focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-kuyay-green text-white shadow-soft hover:-translate-y-0.5 hover:bg-kuyay-deep hover:shadow-card active:translate-y-0;
+  }
+
+  .btn-gold {
+    @apply btn bg-gradient-to-r from-kuyay-gold to-amber-500 text-kuyay-forest shadow-soft hover:-translate-y-0.5 hover:shadow-card;
+  }
+
+  .btn-ghost {
+    @apply btn border border-kuyay-green/20 bg-white/70 text-kuyay-deep backdrop-blur hover:border-kuyay-green/40 hover:bg-white;
+  }
+
+  .glass {
+    @apply border border-white/40 bg-white/70 backdrop-blur-xl;
+  }
+
+  .glass-dark {
+    @apply border border-white/10 bg-kuyay-forest/70 backdrop-blur-xl;
+  }
+
+  .card {
+    @apply rounded-3xl border border-kuyay-green/10 bg-white/80 shadow-soft backdrop-blur;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-kuyay-green/15 bg-white/70 px-3 py-1 text-xs font-semibold text-kuyay-green;
+  }
+
+  .section-title {
+    @apply font-display text-3xl font-bold leading-tight tracking-tight text-kuyay-forest sm:text-4xl md:text-5xl;
+  }
+
+  .input {
+    @apply w-full rounded-2xl border border-kuyay-green/15 bg-white/80 px-4 py-3 text-sm text-kuyay-deep outline-none transition placeholder:text-kuyay-deep/40 focus:border-kuyay-fresh focus:ring-4 focus:ring-kuyay-fresh/15;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-bold uppercase tracking-wider text-kuyay-deep/60;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-kuyay-green via-kuyay-leaf to-kuyay-fresh bg-clip-text text-transparent;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer utilities {
+  .mask-fade-x {
+    mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  }
+  .perspective {
+    perspective: 1400px;
+  }
+}
