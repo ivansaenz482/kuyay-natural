@@ -10,6 +10,7 @@ import Benefits from './Benefits'
 import Story from './Story'
 import Testimonials from './Testimonials'
 import Contact from './Contact'
+import ShareSection from './ShareSection'
 import Footer from './Footer'
 import WhatsAppFloat from './WhatsAppFloat'
 import { useCatalog } from '../context/CatalogContext'
@@ -30,6 +31,7 @@ export default function StoreHome() {
         <Story />
         <Testimonials />
         <Contact />
+        <ShareSection />
       </main>
       <Footer />
       <WhatsAppFloat />
