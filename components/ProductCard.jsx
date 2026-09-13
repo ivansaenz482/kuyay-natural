@@ -114,7 +114,7 @@ export default function ProductCard({ product, index = 0 }) {
             Agregar al carrito
           </button>
           <a
-            href={productWhatsAppLink(product)}
+            href={productWhatsAppLink(product, qty)}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Consultar ${product.name} por WhatsApp`}

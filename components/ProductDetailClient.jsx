@@ -223,7 +223,7 @@ export default function ProductDetailClient() {
                   <ShoppingBag className="h-4 w-4" /> Agregar al carrito
                 </button>
                 <a
-                  href={productWhatsAppLink(product)}
+                  href={productWhatsAppLink(product, qty)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn bg-[#25D366] text-white hover:bg-[#1ebe5b]"

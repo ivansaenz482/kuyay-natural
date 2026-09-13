@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { CartProvider } from '../context/CartContext'
 import { CatalogProvider } from '../context/CatalogContext'
+import CartDrawer from './CartDrawer'
+import Toast from './Toast'
 
 function PageViewTracker() {
   const pathname = usePathname()
@@ -24,6 +26,8 @@ export default function Providers({ children }) {
       <CartProvider>
         <PageViewTracker />
         {children}
+        <CartDrawer />
+        <Toast />
       </CartProvider>
     </CatalogProvider>
   )
