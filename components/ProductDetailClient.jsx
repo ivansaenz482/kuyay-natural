@@ -23,12 +23,14 @@ import WhatsAppIcon from './WhatsAppIcon'
 import { formatUSD, productWhatsAppLink } from '../lib/whatsapp'
 import { useCart } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
+import { useSettings } from '../context/SettingsContext'
 
 export default function ProductDetailClient() {
   const params = useParams()
   const slug = params?.slug
   const { products, registerView } = useCatalog()
   const { addItem } = useCart()
+  const { numbers } = useSettings()
   const [qty, setQty] = useState(1)
   const [active, setActive] = useState(0)
 
@@ -223,7 +225,7 @@ export default function ProductDetailClient() {
                   <ShoppingBag className="h-4 w-4" /> Agregar al carrito
                 </button>
                 <a
-                  href={productWhatsAppLink(product, qty)}
+                  href={productWhatsAppLink(product, qty, numbers)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn bg-[#25D366] text-white hover:bg-[#1ebe5b]"

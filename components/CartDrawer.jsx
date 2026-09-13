@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import { formatUSD } from '../lib/whatsapp'
 import { cartWhatsAppLink } from '../lib/whatsapp'
 import WhatsAppIcon from './WhatsAppIcon'
@@ -9,6 +10,7 @@ import CheckoutModal from './CheckoutModal'
 
 export default function CartDrawer() {
   const { isOpen, closeCart, items, subtotal, count, updateQty, removeItem, clear } = useCart()
+  const { numbers } = useSettings()
   const [checkout, setCheckout] = useState(false)
 
   return (
@@ -150,7 +152,7 @@ export default function CartDrawer() {
                       Finalizar pedido
                     </button>
                     <a
-                      href={cartWhatsAppLink(items, subtotal)}
+                      href={cartWhatsAppLink(items, subtotal, '', numbers)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn mt-2 w-full bg-[#25D366] text-white hover:bg-[#1ebe5b]"

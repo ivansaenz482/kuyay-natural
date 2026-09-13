@@ -98,3 +98,10 @@ create table if not exists testimonials (
   sort_order integer not null default 0,
   created_at timestamptz not null default now()
 );
+
+-- ------------------------- Ajustes de la tienda ----------------------
+create table if not exists settings (
+  key        text primary key,
+  value      text,
+  updated_at timestamptz not null default now()
+);

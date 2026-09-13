@@ -4,10 +4,12 @@ import { Eye, Minus, Plus, ShoppingBag, Star } from 'lucide-react'
 import { useState } from 'react'
 import { formatUSD, productWhatsAppLink } from '../lib/whatsapp'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import WhatsAppIcon from './WhatsAppIcon'
 
 export default function ProductCard({ product, index = 0 }) {
   const { addItem } = useCart()
+  const { numbers } = useSettings()
   const [qty, setQty] = useState(1)
   const discount =
     product.oldPrice && product.oldPrice > product.price
@@ -114,7 +116,7 @@ export default function ProductCard({ product, index = 0 }) {
             Agregar al carrito
           </button>
           <a
-            href={productWhatsAppLink(product, qty)}
+            href={productWhatsAppLink(product, qty, numbers)}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Consultar ${product.name} por WhatsApp`}

@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { CartProvider } from '../context/CartContext'
 import { CatalogProvider } from '../context/CatalogContext'
+import { SettingsProvider } from '../context/SettingsContext'
 import CartDrawer from './CartDrawer'
 import Toast from './Toast'
 
@@ -22,13 +23,15 @@ function PageViewTracker() {
 
 export default function Providers({ children }) {
   return (
-    <CatalogProvider>
-      <CartProvider>
-        <PageViewTracker />
-        {children}
-        <CartDrawer />
-        <Toast />
-      </CartProvider>
-    </CatalogProvider>
+    <SettingsProvider>
+      <CatalogProvider>
+        <CartProvider>
+          <PageViewTracker />
+          {children}
+          <CartDrawer />
+          <Toast />
+        </CartProvider>
+      </CatalogProvider>
+    </SettingsProvider>
   )
 }

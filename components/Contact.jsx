@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
 import { Clock, MapPin, Phone } from 'lucide-react'
-import { WHATSAPP_NUMBERS } from '../lib/whatsapp'
+import { useSettings } from '../context/SettingsContext'
 import WhatsAppIcon from './WhatsAppIcon'
 
 const PHONE_LABELS = ['+593 99 102 8834', '+593 99 439 5266']
 
 export default function Contact() {
+  const { numbers } = useSettings()
   return (
     <section id="contacto" className="relative py-20 sm:py-28">
       <div className="container-x">
@@ -27,7 +28,7 @@ export default function Contact() {
                   envíos coordinados.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {WHATSAPP_NUMBERS.map((num, i) => (
+                  {numbers.map((num, i) => (
                     <a
                       key={num}
                       href={`https://wa.me/${num}?text=${encodeURIComponent(

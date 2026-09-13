@@ -3,19 +3,20 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { WHATSAPP_NUMBERS } from '../lib/whatsapp'
+import { useSettings } from '../context/SettingsContext'
 import WhatsAppIcon from './WhatsAppIcon'
 
 const LABELS = ['Pedidos · +593 99 102 8834', 'Consultas · +593 99 439 5266']
 
 export default function WhatsAppFloat() {
   const [open, setOpen] = useState(false)
+  const { numbers } = useSettings()
 
   return (
     <div className="fixed bottom-6 right-5 z-[55] flex flex-col items-end gap-3">
       <AnimatePresence>
         {open &&
-          WHATSAPP_NUMBERS.map((num, i) => (
+          numbers.map((num, i) => (
             <motion.a
               key={num}
               initial={{ opacity: 0, y: 12, scale: 0.9 }}

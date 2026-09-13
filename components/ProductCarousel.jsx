@@ -4,12 +4,14 @@ import { ChevronLeft, ChevronRight, ShoppingBag, Star } from 'lucide-react'
 import Link from 'next/link'
 import { formatUSD, productWhatsAppLink } from '../lib/whatsapp'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import WhatsAppIcon from './WhatsAppIcon'
 
 export default function ProductCarousel({ products = [] }) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const { addItem } = useCart()
+  const { numbers } = useSettings()
   const total = products.length
 
   const go = useCallback(
@@ -141,7 +143,7 @@ export default function ProductCarousel({ products = [] }) {
                     <ShoppingBag className="h-4 w-4" /> Agregar
                   </button>
                   <a
-                    href={productWhatsAppLink(product)}
+                    href={productWhatsAppLink(product, 1, numbers)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn border border-white/20 bg-white/10 text-white hover:bg-white/20"

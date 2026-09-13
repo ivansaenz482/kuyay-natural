@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { ArrowUpRight, Code2, Lock } from 'lucide-react'
 import WhatsAppIcon from './WhatsAppIcon'
-import { WHATSAPP_NUMBERS } from '../lib/whatsapp'
+import { useSettings } from '../context/SettingsContext'
 
 export default function Footer() {
+  const { numbers } = useSettings()
   return (
     <footer className="relative overflow-hidden bg-kuyay-forest pt-16 pb-8 text-white/70">
       <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[40rem] -translate-x-1/2 rounded-full bg-kuyay-fresh/20 blur-3xl" />
@@ -26,7 +27,7 @@ export default function Footer() {
               naturales y sin conservantes, elaborados en pequeños lotes.
             </p>
             <div className="mt-5 flex gap-2">
-              {WHATSAPP_NUMBERS.map((num) => (
+              {numbers.map((num) => (
                 <a
                   key={num}
                   href={`https://wa.me/${num}`}

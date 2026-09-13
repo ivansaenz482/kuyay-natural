@@ -86,6 +86,25 @@ async function seedCatalog() {
   }
 }
 
+async function seedSettings() {
+  const defaults = {
+    whatsapp_primary: process.env.NEXT_PUBLIC_WHATSAPP_PRIMARY || '593991028834',
+    whatsapp_secondary: process.env.NEXT_PUBLIC_WHATSAPP_SECONDARY || '593994395266',
+    bank_name: process.env.NEXT_PUBLIC_BANK_NAME || 'Banco Pichincha',
+    bank_type: process.env.NEXT_PUBLIC_BANK_TYPE || 'Cuenta de Ahorros',
+    bank_account: process.env.NEXT_PUBLIC_BANK_ACCOUNT || '2200000000',
+    bank_holder: process.env.NEXT_PUBLIC_BANK_HOLDER || 'Kuyay Natural',
+    bank_id: process.env.NEXT_PUBLIC_BANK_ID || '1790000000001',
+  }
+  for (const [key, value] of Object.entries(defaults)) {
+    await pool.query(
+      `insert into settings (key, value) values ($1, $2) on conflict (key) do nothing`,
+      [key, value],
+    )
+  }
+  console.log('✅ Ajustes de la tienda listos (sin sobrescribir cambios del admin).')
+}
+
 async function seedTestimonials() {
   const { rows } = await pool.query('select count(*)::int as n from testimonials')
   if (rows[0].n > 0) {
@@ -106,6 +125,7 @@ try {
   await seedAdmin()
   await seedCatalog()
   await seedTestimonials()
+  await seedSettings()
   console.log('🌿 Seed completado.')
 } catch (error) {
   console.error('❌ Error en el seed:', error.message)

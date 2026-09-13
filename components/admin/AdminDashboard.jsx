@@ -17,6 +17,7 @@ import {
   Pencil,
   Plus,
   Quote,
+  Settings,
   ShoppingCart,
   Star,
   Tags,
@@ -35,6 +36,7 @@ const TABS = [
   { id: 'products', label: 'Productos', icon: Package },
   { id: 'categories', label: 'Categorías', icon: Tags },
   { id: 'testimonials', label: 'Testimonios', icon: Quote },
+  { id: 'settings', label: 'Ajustes', icon: Settings },
   { id: 'security', label: 'Seguridad', icon: KeyRound },
 ]
 
@@ -303,6 +305,18 @@ export default function AdminDashboard() {
   const [testimonialForm, setTestimonialForm] = useState({ name: '', role: '', text: '', rating: 5, sortOrder: 0, active: true })
   const [savingTestimonial, setSavingTestimonial] = useState(false)
 
+  const [settingsForm, setSettingsForm] = useState({
+    whatsappPrimary: '',
+    whatsappSecondary: '',
+    bankName: '',
+    bankType: '',
+    bankAccount: '',
+    bankHolder: '',
+    bankId: '',
+  })
+  const [savingSettings, setSavingSettings] = useState(false)
+  const [settingsMsg, setSettingsMsg] = useState(null)
+
   const [security, setSecurity] = useState({ current: '', next: '', confirm: '', msg: null })
 
   const loadAll = useCallback(async () => {
@@ -320,6 +334,20 @@ export default function AdminDashboard() {
       if (categoriesRes.ok) setCategories(await categoriesRes.json())
       const testimonialsRes = await fetch('/api/testimonials?all=true')
       if (testimonialsRes.ok) setTestimonials(await testimonialsRes.json())
+
+      const settingsRes = await fetch('/api/settings')
+      if (settingsRes.ok) {
+        const s = await settingsRes.json()
+        setSettingsForm({
+          whatsappPrimary: s.whatsappPrimary || '',
+          whatsappSecondary: s.whatsappSecondary || '',
+          bankName: s.bank?.banco || '',
+          bankType: s.bank?.tipo || '',
+          bankAccount: s.bank?.numero || '',
+          bankHolder: s.bank?.titular || '',
+          bankId: s.bank?.identificacion || '',
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -490,6 +518,25 @@ export default function AdminDashboard() {
     if (!confirm(`¿Eliminar el testimonio de "${t.name}"?`)) return
     await fetch(`/api/testimonials/${t.id}`, { method: 'DELETE' })
     loadAll()
+  }
+
+  /* -------- Settings -------- */
+  const saveSettings = async (e) => {
+    e.preventDefault()
+    setSavingSettings(true)
+    setSettingsMsg(null)
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settingsForm),
+    })
+    setSavingSettings(false)
+    setSettingsMsg(
+      res.ok
+        ? { type: 'ok', text: 'Ajustes guardados. Los cambios se ven en la tienda al instante.' }
+        : { type: 'error', text: 'No se pudieron guardar los ajustes.' },
+    )
+    if (res.ok) loadAll()
   }
 
   /* -------- Security -------- */
@@ -855,6 +902,102 @@ export default function AdminDashboard() {
                       </p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* -------------------- AJUSTES -------------------- */}
+              {tab === 'settings' && (
+                <div className="max-w-2xl">
+                  <form onSubmit={saveSettings} className="rounded-3xl border border-kuyay-green/10 bg-white/80 p-6 shadow-soft">
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-kuyay-forest text-kuyay-lime">
+                        <Settings className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <h2 className="font-display text-lg font-black text-kuyay-forest">
+                          Números de WhatsApp
+                        </h2>
+                        <p className="text-xs text-kuyay-deep/50">
+                          El primero es el número de <strong>pedidos</strong> (recibe todos los pedidos).
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="label">WhatsApp de pedidos</label>
+                        <input
+                          className="input"
+                          inputMode="numeric"
+                          value={settingsForm.whatsappPrimary}
+                          onChange={(e) => setSettingsForm((f) => ({ ...f, whatsappPrimary: e.target.value }))}
+                          placeholder="593991028834"
+                        />
+                        <p className="mt-1 text-xs text-kuyay-deep/45">
+                          Formato: código de país + número, sin espacios (ej. 593991028834)
+                        </p>
+                      </div>
+                      <div>
+                        <label className="label">WhatsApp secundario</label>
+                        <input
+                          className="input"
+                          inputMode="numeric"
+                          value={settingsForm.whatsappSecondary}
+                          onChange={(e) => setSettingsForm((f) => ({ ...f, whatsappSecondary: e.target.value }))}
+                          placeholder="593994395266"
+                        />
+                      </div>
+                    </div>
+
+                    {settingsForm.whatsappPrimary && (
+                      <a
+                        href={`https://wa.me/${settingsForm.whatsappPrimary.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-kuyay-green underline-offset-2 hover:underline"
+                      >
+                        Probar el número de pedidos →
+                      </a>
+                    )}
+
+                    <div className="mt-8 border-t border-kuyay-green/10 pt-6">
+                      <h3 className="font-display text-base font-black text-kuyay-forest">
+                        Datos para transferencias
+                      </h3>
+                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="label">Banco</label>
+                          <input className="input" value={settingsForm.bankName} onChange={(e) => setSettingsForm((f) => ({ ...f, bankName: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="label">Tipo de cuenta</label>
+                          <input className="input" value={settingsForm.bankType} onChange={(e) => setSettingsForm((f) => ({ ...f, bankType: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="label">Número de cuenta</label>
+                          <input className="input" value={settingsForm.bankAccount} onChange={(e) => setSettingsForm((f) => ({ ...f, bankAccount: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="label">Titular</label>
+                          <input className="input" value={settingsForm.bankHolder} onChange={(e) => setSettingsForm((f) => ({ ...f, bankHolder: e.target.value }))} />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="label">RUC / Cédula</label>
+                          <input className="input" value={settingsForm.bankId} onChange={(e) => setSettingsForm((f) => ({ ...f, bankId: e.target.value }))} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {settingsMsg && (
+                      <p className={`mt-5 rounded-xl px-4 py-2.5 text-sm font-semibold ${settingsMsg.type === 'ok' ? 'bg-kuyay-lime/40 text-kuyay-forest' : 'bg-kuyay-berry/10 text-kuyay-berry'}`}>
+                        {settingsMsg.text}
+                      </p>
+                    )}
+
+                    <button type="submit" disabled={savingSettings} className="btn-primary mt-5 w-full">
+                      {savingSettings ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar ajustes'}
+                    </button>
+                  </form>
                 </div>
               )}
 

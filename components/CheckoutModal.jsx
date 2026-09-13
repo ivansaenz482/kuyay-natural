@@ -2,7 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { BadgeCheck, Banknote, Building2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useCart } from '../context/CartContext'
-import { formatUSD, orderWhatsAppLink, BANK } from '../lib/whatsapp'
+import { useSettings } from '../context/SettingsContext'
+import { formatUSD, orderWhatsAppLink } from '../lib/whatsapp'
 import WhatsAppIcon from './WhatsAppIcon'
 
 const PAYMENT_METHODS = [
@@ -24,6 +25,7 @@ const initialForm = { name: '', phone: '', address: '', city: '', notes: '' }
 
 export default function CheckoutModal({ open, onClose }) {
   const { items, subtotal, clear, closeCart } = useCart()
+  const { numbers, bank } = useSettings()
   const [form, setForm] = useState(initialForm)
   const [payment, setPayment] = useState('transferencia')
   const [submitting, setSubmitting] = useState(false)
@@ -133,23 +135,23 @@ export default function CheckoutModal({ open, onClose }) {
                     <dl className="mt-3 space-y-1.5 text-sm text-kuyay-deep/70">
                       <div className="flex justify-between gap-3">
                         <dt>Banco</dt>
-                        <dd className="font-semibold">{BANK.banco}</dd>
+                        <dd className="font-semibold">{bank.banco}</dd>
                       </div>
                       <div className="flex justify-between gap-3">
                         <dt>Tipo</dt>
-                        <dd className="font-semibold">{BANK.tipo}</dd>
+                        <dd className="font-semibold">{bank.tipo}</dd>
                       </div>
                       <div className="flex justify-between gap-3">
                         <dt>Cuenta</dt>
-                        <dd className="font-semibold">{BANK.numero}</dd>
+                        <dd className="font-semibold">{bank.numero}</dd>
                       </div>
                       <div className="flex justify-between gap-3">
                         <dt>Titular</dt>
-                        <dd className="font-semibold">{BANK.titular}</dd>
+                        <dd className="font-semibold">{bank.titular}</dd>
                       </div>
                       <div className="flex justify-between gap-3">
                         <dt>RUC/CI</dt>
-                        <dd className="font-semibold">{BANK.identificacion}</dd>
+                        <dd className="font-semibold">{bank.identificacion}</dd>
                       </div>
                       <div className="flex justify-between gap-3 border-t border-kuyay-green/10 pt-2">
                         <dt>Total a pagar</dt>
@@ -162,7 +164,7 @@ export default function CheckoutModal({ open, onClose }) {
                 )}
 
                 <a
-                  href={orderWhatsAppLink(done)}
+                  href={orderWhatsAppLink(done, numbers)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn mt-5 w-full bg-[#25D366] py-4 text-base text-white hover:-translate-y-0.5 hover:bg-[#1ebe5b]"
