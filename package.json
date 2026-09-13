@@ -10,6 +10,7 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "node scripts/seed.mjs",
     "qr": "node scripts/generate-qr.mjs",
+    "qr:print": "node scripts/generate-qr-print.mjs",
     "auth:migrate": "better-auth migrate"
   },
   "dependencies": {
