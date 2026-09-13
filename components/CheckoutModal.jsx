@@ -1,36 +1,114 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { BadgeCheck, Banknote, Building2, X } from 'lucide-react'
-import { useState } from 'react'
+import { BadgeCheck, Banknote, Building2, Check, Copy, ExternalLink, Smartphone, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { useSettings } from '../context/SettingsContext'
 import { formatUSD, orderWhatsAppLink } from '../lib/whatsapp'
 import WhatsAppIcon from './WhatsAppIcon'
 
-const PAYMENT_METHODS = [
-  {
-    id: 'transferencia',
-    title: 'Transferencia bancaria',
-    desc: 'Te enviamos los datos de la cuenta al confirmar.',
-    icon: Building2,
-  },
-  {
-    id: 'efectivo',
-    title: 'Efectivo',
-    desc: 'Pagas al recibir tu pedido en la entrega.',
-    icon: Banknote,
-  },
-]
+const PAYMENT_LABELS = {
+  transferencia: 'por transferencia',
+  efectivo: 'en efectivo',
+  deuna: 'con DeUna',
+  go: 'con GO',
+}
 
 const initialForm = { name: '', phone: '', address: '', city: '', notes: '' }
 
+function CopyRow({ label, value }) {
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      /* noop */
+    }
+  }
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <dt className="text-kuyay-deep/60">{label}</dt>
+      <dd className="flex items-center gap-2 font-semibold text-kuyay-forest">
+        {value}
+        <button type="button" onClick={copy} aria-label={`Copiar ${label}`} className="text-kuyay-deep/40 transition hover:text-kuyay-green">
+          {copied ? <Check className="h-3.5 w-3.5 text-kuyay-green" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+      </dd>
+    </div>
+  )
+}
+
+function BankAccounts({ accounts = [] }) {
+  if (!accounts.length) return null
+  return (
+    <div className="space-y-3">
+      {accounts.map((a, i) => (
+        <div key={i} className="rounded-2xl border border-kuyay-green/15 bg-white/80 p-4 text-left">
+          <p className="mb-2 text-sm font-bold text-kuyay-forest">
+            {a.banco || 'Cuenta bancaria'} {accounts.length > 1 ? `#${i + 1}` : ''}
+          </p>
+          <dl className="space-y-1.5 text-sm text-kuyay-deep/70">
+            {a.tipo && <CopyRow label="Tipo" value={a.tipo} />}
+            {a.numero && <CopyRow label="Cuenta" value={a.numero} />}
+            {a.titular && <CopyRow label="Titular" value={a.titular} />}
+            {a.identificacion && <CopyRow label="RUC/CI" value={a.identificacion} />}
+          </dl>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function WalletDetails({ method, config, total }) {
+  if (!config) return null
+  return (
+    <div className="rounded-2xl border border-kuyay-green/15 bg-white/80 p-5 text-left">
+      <p className="text-sm font-bold text-kuyay-forest">Pago con {method}</p>
+      {config.note && <p className="mt-1 text-xs text-kuyay-deep/60">{config.note}</p>}
+      <dl className="mt-3 space-y-1.5 text-sm text-kuyay-deep/70">
+        {config.phone && <CopyRow label="Número" value={config.phone} />}
+        <div className="flex justify-between gap-3 border-t border-kuyay-green/10 pt-2">
+          <dt>Total a pagar</dt>
+          <dd className="font-display text-lg font-black text-kuyay-forest">{formatUSD(total)}</dd>
+        </div>
+      </dl>
+      {config.link && (
+        <a href={config.link} target="_blank" rel="noopener noreferrer" className="btn-primary mt-4 w-full">
+          <ExternalLink className="h-4 w-4" /> Abrir {method}
+        </a>
+      )}
+    </div>
+  )
+}
+
 export default function CheckoutModal({ open, onClose }) {
   const { items, subtotal, clear, closeCart } = useCart()
-  const { numbers, bank } = useSettings()
+  const { numbers, bankAccounts, payment: paymentCfg } = useSettings()
   const [form, setForm] = useState(initialForm)
   const [payment, setPayment] = useState('transferencia')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(null)
   const [error, setError] = useState('')
+
+  const methods = useMemo(() => {
+    const list = [
+      {
+        id: 'transferencia',
+        title: 'Transferencia bancaria',
+        desc: bankAccounts.length > 1 ? `${bankAccounts.length} cuentas disponibles` : 'Datos de la cuenta al confirmar',
+        icon: Building2,
+      },
+      { id: 'efectivo', title: 'Efectivo', desc: 'Pagas al recibir tu pedido.', icon: Banknote },
+    ]
+    if (paymentCfg?.deuna?.enabled) {
+      list.push({ id: 'deuna', title: 'DeUna', desc: 'Paga con la app DeUna.', icon: Smartphone })
+    }
+    if (paymentCfg?.go?.enabled) {
+      list.push({ id: 'go', title: 'GO', desc: 'Paga con la app GO.', icon: Smartphone })
+    }
+    return list
+  }, [bankAccounts, paymentCfg])
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
@@ -122,46 +200,18 @@ export default function CheckoutModal({ open, onClose }) {
                 </p>
                 <p className="mt-2 text-sm text-kuyay-deep/65">
                   Tu pedido <span className="font-bold text-kuyay-green">{done.id}</span> fue
-                  registrado con pago{' '}
-                  <span className="font-bold">
-                    {done.paymentMethod === 'transferencia' ? 'por transferencia' : 'en efectivo'}
-                  </span>
-                  .
+                  registrado {PAYMENT_LABELS[done.paymentMethod] || ''}.
                 </p>
 
-                {done.paymentMethod === 'transferencia' && (
-                  <div className="mt-5 rounded-2xl border border-kuyay-green/15 bg-white/80 p-5 text-left">
-                    <p className="text-sm font-bold text-kuyay-forest">Datos para transferir</p>
-                    <dl className="mt-3 space-y-1.5 text-sm text-kuyay-deep/70">
-                      <div className="flex justify-between gap-3">
-                        <dt>Banco</dt>
-                        <dd className="font-semibold">{bank.banco}</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>Tipo</dt>
-                        <dd className="font-semibold">{bank.tipo}</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>Cuenta</dt>
-                        <dd className="font-semibold">{bank.numero}</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>Titular</dt>
-                        <dd className="font-semibold">{bank.titular}</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>RUC/CI</dt>
-                        <dd className="font-semibold">{bank.identificacion}</dd>
-                      </div>
-                      <div className="flex justify-between gap-3 border-t border-kuyay-green/10 pt-2">
-                        <dt>Total a pagar</dt>
-                        <dd className="font-display text-lg font-black text-kuyay-forest">
-                          {formatUSD(done.total)}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-                )}
+                <div className="mt-5 space-y-3">
+                  {done.paymentMethod === 'transferencia' && <BankAccounts accounts={bankAccounts} />}
+                  {done.paymentMethod === 'deuna' && (
+                    <WalletDetails method="DeUna" config={paymentCfg?.deuna} total={done.total} />
+                  )}
+                  {done.paymentMethod === 'go' && (
+                    <WalletDetails method="GO" config={paymentCfg?.go} total={done.total} />
+                  )}
+                </div>
 
                 <a
                   href={orderWhatsAppLink(done, numbers)}
@@ -171,10 +221,7 @@ export default function CheckoutModal({ open, onClose }) {
                 >
                   <WhatsAppIcon className="h-5 w-5" /> Enviar pedido por WhatsApp
                 </a>
-                <a
-                  href={`/seguimiento?code=${done.id}`}
-                  className="btn-ghost mt-2 w-full"
-                >
+                <a href={`/seguimiento?code=${done.id}`} className="btn-ghost mt-2 w-full">
                   Rastrear mi pedido
                 </a>
                 <button
@@ -224,7 +271,7 @@ export default function CheckoutModal({ open, onClose }) {
                 <div>
                   <p className="label">Método de pago</p>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {PAYMENT_METHODS.map((m) => {
+                    {methods.map((m) => {
                       const active = payment === m.id
                       return (
                         <button
@@ -240,19 +287,26 @@ export default function CheckoutModal({ open, onClose }) {
                           <m.icon className={`h-6 w-6 ${active ? 'text-kuyay-green' : 'text-kuyay-deep/50'}`} />
                           <p className="mt-2 text-sm font-bold text-kuyay-forest">{m.title}</p>
                           <p className="mt-0.5 text-xs text-kuyay-deep/55">{m.desc}</p>
-                          {active && (
-                            <BadgeCheck className="absolute right-3 top-3 h-5 w-5 text-kuyay-green" />
-                          )}
+                          {active && <BadgeCheck className="absolute right-3 top-3 h-5 w-5 text-kuyay-green" />}
                         </button>
                       )
                     })}
                   </div>
                 </div>
 
-                {payment === 'transferencia' && (
+                {payment === 'transferencia' && bankAccounts.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-kuyay-deep/50">
+                      Cuentas disponibles
+                    </p>
+                    <BankAccounts accounts={bankAccounts} />
+                  </div>
+                )}
+                {payment === 'deuna' && <WalletDetails method="DeUna" config={paymentCfg?.deuna} total={subtotal} />}
+                {payment === 'go' && <WalletDetails method="GO" config={paymentCfg?.go} total={subtotal} />}
+                {payment === 'efectivo' && (
                   <div className="rounded-2xl border border-kuyay-green/15 bg-kuyay-sand/60 p-4 text-xs text-kuyay-deep/70">
-                    Al confirmar verás los datos bancarios para realizar la transferencia y podrás
-                    enviarnos el comprobante por WhatsApp.
+                    Pagas en efectivo al recibir tu pedido. Coordinamos la entrega por WhatsApp.
                   </div>
                 )}
 

@@ -309,11 +309,15 @@ export default function AdminDashboard() {
   const [settingsForm, setSettingsForm] = useState({
     whatsappPrimary: '',
     whatsappSecondary: '',
-    bankName: '',
-    bankType: '',
-    bankAccount: '',
-    bankHolder: '',
-    bankId: '',
+    bankAccounts: [],
+    deunaEnabled: true,
+    deunaPhone: '',
+    deunaLink: '',
+    deunaNote: '',
+    goEnabled: true,
+    goPhone: '',
+    goLink: '',
+    goNote: '',
     socialInstagram: '',
     socialFacebook: '',
     socialTiktok: '',
@@ -347,11 +351,17 @@ export default function AdminDashboard() {
         setSettingsForm({
           whatsappPrimary: s.whatsappPrimary || '',
           whatsappSecondary: s.whatsappSecondary || '',
-          bankName: s.bank?.banco || '',
-          bankType: s.bank?.tipo || '',
-          bankAccount: s.bank?.numero || '',
-          bankHolder: s.bank?.titular || '',
-          bankId: s.bank?.identificacion || '',
+          bankAccounts: Array.isArray(s.bankAccounts) && s.bankAccounts.length
+            ? s.bankAccounts
+            : [{ banco: '', tipo: '', numero: '', titular: '', identificacion: '' }],
+          deunaEnabled: s.payment?.deuna?.enabled ?? true,
+          deunaPhone: s.payment?.deuna?.phone || '',
+          deunaLink: s.payment?.deuna?.link || '',
+          deunaNote: s.payment?.deuna?.note || '',
+          goEnabled: s.payment?.go?.enabled ?? true,
+          goPhone: s.payment?.go?.phone || '',
+          goLink: s.payment?.go?.link || '',
+          goNote: s.payment?.go?.note || '',
           socialInstagram: s.social?.instagram || '',
           socialFacebook: s.social?.facebook || '',
           socialTiktok: s.social?.tiktok || '',
@@ -539,7 +549,28 @@ export default function AdminDashboard() {
     const res = await fetch('/api/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settingsForm),
+      body: JSON.stringify({
+        whatsappPrimary: settingsForm.whatsappPrimary,
+        whatsappSecondary: settingsForm.whatsappSecondary,
+        bankAccounts: settingsForm.bankAccounts,
+        deuna: {
+          enabled: settingsForm.deunaEnabled,
+          phone: settingsForm.deunaPhone,
+          link: settingsForm.deunaLink,
+          note: settingsForm.deunaNote,
+        },
+        go: {
+          enabled: settingsForm.goEnabled,
+          phone: settingsForm.goPhone,
+          link: settingsForm.goLink,
+          note: settingsForm.goNote,
+        },
+        socialInstagram: settingsForm.socialInstagram,
+        socialFacebook: settingsForm.socialFacebook,
+        socialTiktok: settingsForm.socialTiktok,
+        socialYoutube: settingsForm.socialYoutube,
+        socialX: settingsForm.socialX,
+      }),
     })
     setSavingSettings(false)
     setSettingsMsg(
@@ -972,31 +1003,120 @@ export default function AdminDashboard() {
                     )}
 
                     <div className="mt-8 border-t border-kuyay-green/10 pt-6">
-                      <h3 className="font-display text-base font-black text-kuyay-forest">
-                        Datos para transferencias
-                      </h3>
-                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <label className="label">Banco</label>
-                          <input className="input" value={settingsForm.bankName} onChange={(e) => setSettingsForm((f) => ({ ...f, bankName: e.target.value }))} />
-                        </div>
-                        <div>
-                          <label className="label">Tipo de cuenta</label>
-                          <input className="input" value={settingsForm.bankType} onChange={(e) => setSettingsForm((f) => ({ ...f, bankType: e.target.value }))} />
-                        </div>
-                        <div>
-                          <label className="label">Número de cuenta</label>
-                          <input className="input" value={settingsForm.bankAccount} onChange={(e) => setSettingsForm((f) => ({ ...f, bankAccount: e.target.value }))} />
-                        </div>
-                        <div>
-                          <label className="label">Titular</label>
-                          <input className="input" value={settingsForm.bankHolder} onChange={(e) => setSettingsForm((f) => ({ ...f, bankHolder: e.target.value }))} />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className="label">RUC / Cédula</label>
-                          <input className="input" value={settingsForm.bankId} onChange={(e) => setSettingsForm((f) => ({ ...f, bankId: e.target.value }))} />
-                        </div>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h3 className="font-display text-base font-black text-kuyay-forest">
+                          Cuentas bancarias
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setSettingsForm((s) => ({
+                            ...s,
+                            bankAccounts: [...s.bankAccounts, { banco: '', tipo: '', numero: '', titular: '', identificacion: '' }],
+                          }))}
+                          className="btn-ghost !px-3 !py-2 text-xs"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Agregar cuenta
+                        </button>
                       </div>
+                      <p className="mt-1 text-xs text-kuyay-deep/50">
+                        Puedes tener varias cuentas; el cliente las verá al pagar por transferencia.
+                      </p>
+                      <div className="mt-4 space-y-4">
+                        {settingsForm.bankAccounts.map((a, i) => (
+                          <div key={i} className="rounded-2xl border border-kuyay-green/10 bg-kuyay-sand/40 p-4">
+                            <div className="mb-3 flex items-center justify-between">
+                              <p className="text-xs font-bold uppercase tracking-wider text-kuyay-deep/50">
+                                Cuenta #{i + 1}
+                              </p>
+                              {settingsForm.bankAccounts.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSettingsForm((s) => ({ ...s, bankAccounts: s.bankAccounts.filter((_, idx) => idx !== i) }))}
+                                  className="text-kuyay-berry transition hover:text-kuyay-rose"
+                                  aria-label="Eliminar cuenta"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              )}
+                            </div>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              {[
+                                ['banco', 'Banco'],
+                                ['tipo', 'Tipo de cuenta'],
+                                ['numero', 'Número de cuenta'],
+                                ['titular', 'Titular'],
+                                ['identificacion', 'RUC / Cédula'],
+                              ].map(([field, label]) => (
+                                <div key={field} className={field === 'identificacion' ? 'sm:col-span-2' : ''}>
+                                  <label className="label">{label}</label>
+                                  <input
+                                    className="input"
+                                    value={a[field] || ''}
+                                    onChange={(e) => setSettingsForm((s) => ({
+                                      ...s,
+                                      bankAccounts: s.bankAccounts.map((acc, idx) => (idx === i ? { ...acc, [field]: e.target.value } : acc)),
+                                    }))}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-8 border-t border-kuyay-green/10 pt-6">
+                      <h3 className="font-display text-base font-black text-kuyay-forest">
+                        Pagos con DeUna y GO
+                      </h3>
+                      <p className="mt-1 text-xs text-kuyay-deep/50">
+                        Activa las apps y agrega el número o enlace de pago. Se mostrarán en el checkout.
+                      </p>
+
+                      {[
+                        ['deuna', 'DeUna'],
+                        ['go', 'GO'],
+                      ].map(([key, label]) => (
+                        <div key={key} className="mt-4 rounded-2xl border border-kuyay-green/10 bg-kuyay-sand/40 p-4">
+                          <label className="flex items-center gap-2 text-sm font-bold text-kuyay-forest">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(settingsForm[`${key}Enabled`])}
+                              onChange={(e) => setSettingsForm((s) => ({ ...s, [`${key}Enabled`]: e.target.checked }))}
+                            />
+                            Aceptar pago con {label}
+                          </label>
+                          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                            <div>
+                              <label className="label">Número / teléfono</label>
+                              <input
+                                className="input"
+                                value={settingsForm[`${key}Phone`] || ''}
+                                onChange={(e) => setSettingsForm((s) => ({ ...s, [`${key}Phone`]: e.target.value }))}
+                                placeholder="0999999999"
+                              />
+                            </div>
+                            <div>
+                              <label className="label">Enlace de pago (opcional)</label>
+                              <input
+                                className="input"
+                                value={settingsForm[`${key}Link`] || ''}
+                                onChange={(e) => setSettingsForm((s) => ({ ...s, [`${key}Link`]: e.target.value }))}
+                                placeholder="https://..."
+                              />
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="label">Mensaje para el cliente</label>
+                              <input
+                                className="input"
+                                value={settingsForm[`${key}Note`] || ''}
+                                onChange={(e) => setSettingsForm((s) => ({ ...s, [`${key}Note`]: e.target.value }))}
+                                placeholder={`Paga con ${label} desde tu app.`}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     <div className="mt-8 border-t border-kuyay-green/10 pt-6">

@@ -62,10 +62,15 @@ create table if not exists orders (
   code           text not null unique,
   customer       jsonb not null,
   total          numeric(10,2) not null default 0,
-  payment_method text not null check (payment_method in ('transferencia', 'efectivo')),
+  payment_method text not null check (payment_method in ('transferencia', 'efectivo', 'deuna', 'go')),
   status         text not null default 'pendiente',
   created_at     timestamptz not null default now()
 );
+
+-- Permite agregar metodos de pago nuevos en bases existentes
+alter table orders drop constraint if exists orders_payment_method_check;
+alter table orders add constraint orders_payment_method_check
+  check (payment_method in ('transferencia', 'efectivo', 'deuna', 'go'));
 
 create table if not exists order_items (
   id         serial primary key,

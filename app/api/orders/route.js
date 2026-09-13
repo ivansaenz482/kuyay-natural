@@ -41,7 +41,7 @@ export async function POST(req) {
     if (!customer?.name || !customer?.phone || !items?.length) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
     }
-    if (!['transferencia', 'efectivo'].includes(paymentMethod)) {
+    if (!['transferencia', 'efectivo', 'deuna', 'go'].includes(paymentMethod)) {
       return NextResponse.json({ error: 'Método de pago inválido' }, { status: 400 })
     }
 

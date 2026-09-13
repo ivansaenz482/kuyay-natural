@@ -5,7 +5,14 @@ import { DEFAULT_BANK, DEFAULT_NUMBERS } from '../lib/whatsapp'
 
 const EMPTY_SOCIAL = { instagram: '', facebook: '', tiktok: '', youtube: '', x: '' }
 
-const DEFAULTS = { numbers: DEFAULT_NUMBERS, bank: DEFAULT_BANK, social: EMPTY_SOCIAL }
+const EMPTY_METHOD = { enabled: true, phone: '', link: '', note: '' }
+
+const DEFAULTS = {
+  numbers: DEFAULT_NUMBERS,
+  bankAccounts: [DEFAULT_BANK],
+  payment: { deuna: { ...EMPTY_METHOD }, go: { ...EMPTY_METHOD } },
+  social: EMPTY_SOCIAL,
+}
 
 const SettingsContext = createContext({ ...DEFAULTS, refresh: () => {} })
 
@@ -19,7 +26,11 @@ export function SettingsProvider({ children }) {
       const data = await res.json()
       setState({
         numbers: [data.whatsappPrimary, data.whatsappSecondary].filter(Boolean),
-        bank: data.bank || DEFAULT_BANK,
+        bankAccounts: Array.isArray(data.bankAccounts) && data.bankAccounts.length ? data.bankAccounts : [DEFAULT_BANK],
+        payment: {
+          deuna: { ...EMPTY_METHOD, ...(data.payment?.deuna || {}) },
+          go: { ...EMPTY_METHOD, ...(data.payment?.go || {}) },
+        },
         social: { ...EMPTY_SOCIAL, ...(data.social || {}) },
       })
     } catch {
