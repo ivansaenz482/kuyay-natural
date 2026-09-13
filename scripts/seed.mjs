@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import dotenv from 'dotenv'
 import pg from 'pg'
 import { betterAuth } from 'better-auth'
-import { SEED_CATEGORIES, SEED_PRODUCTS } from '../data/catalog.js'
+import { SEED_CATEGORIES, SEED_PRODUCTS, SEED_TESTIMONIALS } from '../data/catalog.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
@@ -86,9 +86,26 @@ async function seedCatalog() {
   }
 }
 
+async function seedTestimonials() {
+  const { rows } = await pool.query('select count(*)::int as n from testimonials')
+  if (rows[0].n > 0) {
+    console.log('ℹ️  Los testimonios ya tienen datos, no se insertaron.')
+    return
+  }
+  for (const t of SEED_TESTIMONIALS) {
+    await pool.query(
+      `insert into testimonials (name, role, text, rating, sort_order)
+       values ($1,$2,$3,$4,$5)`,
+      [t.name, t.role, t.text, t.rating, t.sort_order],
+    )
+  }
+  console.log(`✅ ${SEED_TESTIMONIALS.length} testimonios insertados.`)
+}
+
 try {
   await seedAdmin()
   await seedCatalog()
+  await seedTestimonials()
   console.log('🌿 Seed completado.')
 } catch (error) {
   console.error('❌ Error en el seed:', error.message)

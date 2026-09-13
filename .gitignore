@@ -9,3 +9,6 @@ build
 public/uploads
 npm-debug.log*
 .DS_Store
+
+.vercel
+.env*

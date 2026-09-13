@@ -1,5 +1,28 @@
-export const SEED_CATEGORIES = [
-  { name: 'Kéfir Artesanal', slug: 'kefir', emoji: '🥛', sort_order: 1 },
+export const SEED_TESTIMONIALS = [
+  {
+    name: 'María Fernanda',
+    role: 'Cliente frecuente',
+    text: 'El kéfir de frutos rojos es espectacular. Mi digestión mejoró muchísimo y el sabor es delicioso.',
+    rating: 5,
+    sort_order: 1,
+  },
+  {
+    name: 'Andrés Villalba',
+    role: 'Chef en casa',
+    text: 'El queso crema de kéfir reemplazó por completo al que compraba en el super. Se nota lo artesanal.',
+    rating: 5,
+    sort_order: 2,
+  },
+  {
+    name: 'Camila Ortiz',
+    role: 'Mamá y deportista',
+    text: 'Las frutas deshidratadas son el snack perfecto de mis hijos. Naturales y sin azúcar añadida.',
+    rating: 5,
+    sort_order: 3,
+  },
+]
+
+export const SEED_CATEGORIES = [  { name: 'Kéfir Artesanal', slug: 'kefir', emoji: '🥛', sort_order: 1 },
   { name: 'Queso Crema de Kéfir', slug: 'queso', emoji: '🧈', sort_order: 2 },
   { name: 'Frutas Deshidratadas', slug: 'frutas', emoji: '🥭', sort_order: 3 },
   { name: 'Packs & Miel', slug: 'packs', emoji: '🎁', sort_order: 4 },

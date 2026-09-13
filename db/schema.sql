@@ -86,3 +86,15 @@ create table if not exists page_views (
 );
 
 create index if not exists page_views_created_idx on page_views(created_at);
+
+-- ----------------------------- Testimonios ---------------------------
+create table if not exists testimonials (
+  id         serial primary key,
+  name       text not null,
+  role       text,
+  text       text not null,
+  rating     integer not null default 5,
+  active     boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);

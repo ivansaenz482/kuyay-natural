@@ -16,6 +16,7 @@ import {
   Package,
   Pencil,
   Plus,
+  Quote,
   ShoppingCart,
   Star,
   Tags,
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react'
 import { AreaChart, BarChart, StatCard } from './Charts'
 import { formatUSD } from '../../lib/whatsapp'
+import { ALL_ORDER_STATUSES } from '../../lib/orders'
 import { authClient } from '../../lib/auth-client'
 
 const TABS = [
@@ -32,6 +34,7 @@ const TABS = [
   { id: 'orders', label: 'Pedidos', icon: ShoppingCart },
   { id: 'products', label: 'Productos', icon: Package },
   { id: 'categories', label: 'Categorías', icon: Tags },
+  { id: 'testimonials', label: 'Testimonios', icon: Quote },
   { id: 'security', label: 'Seguridad', icon: KeyRound },
 ]
 
@@ -282,6 +285,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([])
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
+  const [testimonials, setTestimonials] = useState([])
   const [loading, setLoading] = useState(false)
 
   const [productModal, setProductModal] = useState(false)
@@ -293,6 +297,11 @@ export default function AdminDashboard() {
   const [editingCategory, setEditingCategory] = useState(null)
   const [categoryForm, setCategoryForm] = useState({ name: '', emoji: '🌿', sortOrder: 0 })
   const [savingCategory, setSavingCategory] = useState(false)
+
+  const [testimonialModal, setTestimonialModal] = useState(false)
+  const [editingTestimonial, setEditingTestimonial] = useState(null)
+  const [testimonialForm, setTestimonialForm] = useState({ name: '', role: '', text: '', rating: 5, sortOrder: 0, active: true })
+  const [savingTestimonial, setSavingTestimonial] = useState(false)
 
   const [security, setSecurity] = useState({ current: '', next: '', confirm: '', msg: null })
 
@@ -309,6 +318,8 @@ export default function AdminDashboard() {
       if (ordersRes.ok) setOrders(await ordersRes.json())
       if (productsRes.ok) setProducts(await productsRes.json())
       if (categoriesRes.ok) setCategories(await categoriesRes.json())
+      const testimonialsRes = await fetch('/api/testimonials?all=true')
+      if (testimonialsRes.ok) setTestimonials(await testimonialsRes.json())
     } finally {
       setLoading(false)
     }
@@ -432,6 +443,52 @@ export default function AdminDashboard() {
   const deleteCategory = async (c) => {
     if (!confirm(`¿Eliminar la categoría "${c.name}"?`)) return
     await fetch(`/api/categories/${c.id}`, { method: 'DELETE' })
+    loadAll()
+  }
+
+  /* -------- Order status -------- */
+  const updateStatus = async (dbId, status) => {
+    setOrders((prev) => prev.map((o) => (o.dbId === dbId ? { ...o, status } : o)))
+    const res = await fetch(`/api/orders/${dbId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    if (!res.ok) loadAll()
+  }
+
+  /* -------- Testimonials -------- */
+  const openNewTestimonial = () => {
+    setEditingTestimonial(null)
+    setTestimonialForm({ name: '', role: '', text: '', rating: 5, sortOrder: testimonials.length + 1, active: true })
+    setTestimonialModal(true)
+  }
+  const openEditTestimonial = (t) => {
+    setEditingTestimonial(t)
+    setTestimonialForm({ ...t })
+    setTestimonialModal(true)
+  }
+  const saveTestimonial = async (e) => {
+    e.preventDefault()
+    setSavingTestimonial(true)
+    const url = editingTestimonial ? `/api/testimonials/${editingTestimonial.id}` : '/api/testimonials'
+    const res = await fetch(url, {
+      method: editingTestimonial ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testimonialForm),
+    })
+    setSavingTestimonial(false)
+    if (res.ok) {
+      setTestimonialModal(false)
+      loadAll()
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'No se pudo guardar el testimonio')
+    }
+  }
+  const deleteTestimonial = async (t) => {
+    if (!confirm(`¿Eliminar el testimonio de "${t.name}"?`)) return
+    await fetch(`/api/testimonials/${t.id}`, { method: 'DELETE' })
     loadAll()
   }
 
@@ -611,6 +668,7 @@ export default function AdminDashboard() {
                           <th className="px-5 py-3">Productos</th>
                           <th className="px-5 py-3">Pago</th>
                           <th className="px-5 py-3">Total</th>
+                          <th className="px-5 py-3">Estado</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -630,11 +688,28 @@ export default function AdminDashboard() {
                               </span>
                             </td>
                             <td className="px-5 py-4 font-display font-black text-kuyay-green">{formatUSD(o.total)}</td>
+                            <td className="px-5 py-4">
+                              <select
+                                value={o.status || 'pendiente'}
+                                onChange={(e) => updateStatus(o.dbId, e.target.value)}
+                                className={`rounded-full border-0 px-3 py-1.5 text-xs font-bold capitalize outline-none ring-1 ring-inset focus:ring-2 ${
+                                  o.status === 'cancelado'
+                                    ? 'bg-kuyay-berry/15 text-kuyay-berry ring-kuyay-berry/30'
+                                    : o.status === 'entregado'
+                                    ? 'bg-kuyay-green/15 text-kuyay-green ring-kuyay-green/30'
+                                    : 'bg-kuyay-lime/40 text-kuyay-forest ring-kuyay-green/20'
+                                }`}
+                              >
+                                {ALL_ORDER_STATUSES.map((s) => (
+                                  <option key={s.id} value={s.id}>{s.short || s.label}</option>
+                                ))}
+                              </select>
+                            </td>
                           </tr>
                         ))}
                         {!orders.length && (
                           <tr>
-                            <td colSpan={5} className="px-5 py-10 text-center text-kuyay-deep/50">Sin pedidos todavía.</td>
+                            <td colSpan={6} className="px-5 py-10 text-center text-kuyay-deep/50">Sin pedidos todavía.</td>
                           </tr>
                         )}
                       </tbody>
@@ -730,6 +805,55 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* -------------------- TESTIMONIOS -------------------- */}
+              {tab === 'testimonials' && (
+                <div>
+                  <div className="mb-5 flex justify-end">
+                    <button onClick={openNewTestimonial} className="btn-primary">
+                      <Plus className="h-4 w-4" /> Nuevo testimonio
+                    </button>
+                  </div>
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                    {testimonials.map((t) => (
+                      <div key={t.id} className="flex flex-col rounded-3xl border border-kuyay-green/10 bg-white/80 p-5 shadow-soft">
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: t.rating || 5 }).map((_, s) => (
+                            <Star key={s} className="h-4 w-4 fill-kuyay-gold text-kuyay-gold" />
+                          ))}
+                          {!t.active && (
+                            <span className="ml-auto rounded-full bg-kuyay-deep/10 px-2 py-0.5 text-[10px] font-bold uppercase text-kuyay-deep/50">
+                              Oculto
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-3 flex-1 text-sm leading-relaxed text-kuyay-deep/70">“{t.text}”</p>
+                        <div className="mt-4">
+                          <p className="font-bold text-kuyay-forest">{t.name}</p>
+                          {t.role && <p className="text-xs text-kuyay-deep/50">{t.role}</p>}
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                          <button onClick={() => openEditTestimonial(t)} className="btn-ghost flex-1 !px-3 !py-2 text-xs">
+                            <Pencil className="h-3.5 w-3.5" /> Editar
+                          </button>
+                          <button
+                            onClick={() => deleteTestimonial(t)}
+                            className="grid h-9 w-9 place-items-center rounded-full border border-kuyay-berry/20 text-kuyay-berry transition hover:bg-kuyay-berry hover:text-white"
+                            aria-label="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {!testimonials.length && (
+                      <p className="col-span-full py-10 text-center text-kuyay-deep/50">
+                        Aún no hay testimonios. Crea el primero.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -880,6 +1004,46 @@ export default function AdminDashboard() {
             <button type="button" onClick={() => setCategoryModal(false)} className="btn-ghost flex-1">Cancelar</button>
             <button type="submit" disabled={savingCategory} className="btn-primary flex-1">
               {savingCategory ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar categoría'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal testimonio */}
+      <Modal open={testimonialModal} onClose={() => setTestimonialModal(false)} title={editingTestimonial ? 'Editar testimonio' : 'Nuevo testimonio'}>
+        <form onSubmit={saveTestimonial} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label">Nombre *</label>
+              <input className="input" required value={testimonialForm.name} onChange={(e) => setTestimonialForm((f) => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Rol / descripción</label>
+              <input className="input" value={testimonialForm.role || ''} onChange={(e) => setTestimonialForm((f) => ({ ...f, role: e.target.value }))} placeholder="Cliente frecuente" />
+            </div>
+          </div>
+          <div>
+            <label className="label">Comentario *</label>
+            <textarea className="input resize-none" rows={4} required value={testimonialForm.text} onChange={(e) => setTestimonialForm((f) => ({ ...f, text: e.target.value }))} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Estrellas (1-5)</label>
+              <input className="input" type="number" min="1" max="5" value={testimonialForm.rating} onChange={(e) => setTestimonialForm((f) => ({ ...f, rating: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Orden</label>
+              <input className="input" type="number" value={testimonialForm.sortOrder} onChange={(e) => setTestimonialForm((f) => ({ ...f, sortOrder: e.target.value }))} />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm font-semibold text-kuyay-deep">
+            <input type="checkbox" checked={testimonialForm.active !== false} onChange={(e) => setTestimonialForm((f) => ({ ...f, active: e.target.checked }))} />
+            Visible en la tienda
+          </label>
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={() => setTestimonialModal(false)} className="btn-ghost flex-1">Cancelar</button>
+            <button type="submit" disabled={savingTestimonial} className="btn-primary flex-1">
+              {savingTestimonial ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar testimonio'}
             </button>
           </div>
         </form>

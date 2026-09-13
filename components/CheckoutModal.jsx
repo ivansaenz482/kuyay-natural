@@ -162,10 +162,16 @@ export default function CheckoutModal({ open, onClose }) {
                 )}
 
                 <a
+                  href={`/seguimiento?code=${done.id}`}
+                  className="btn-primary mt-5 w-full"
+                >
+                  Rastrear mi pedido
+                </a>
+                <a
                   href={cartWhatsAppLink(done.items, done.total, `Pedido ${done.id} · ${done.customer.name}`)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn mt-5 w-full bg-[#25D366] text-white hover:bg-[#1ebe5b]"
+                  className="btn mt-2 w-full bg-[#25D366] text-white hover:bg-[#1ebe5b]"
                 >
                   <WhatsAppIcon className="h-4 w-4" /> Enviar comprobante por WhatsApp
                 </a>
