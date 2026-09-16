@@ -9,6 +9,7 @@
     "start": "next start",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "node scripts/seed.mjs",
+    "db:reset-stats": "node scripts/reset-stats.mjs",
     "qr": "node scripts/generate-qr.mjs",
     "qr:print": "node scripts/generate-qr-print.mjs",
     "auth:migrate": "better-auth migrate"
