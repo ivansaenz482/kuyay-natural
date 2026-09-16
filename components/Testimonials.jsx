@@ -37,7 +37,15 @@ export default function Testimonials() {
               transition={{ delay: i * 0.12 }}
               className="relative rounded-3xl border border-white/15 bg-white/10 p-6 backdrop-blur-xl"
             >
-              <Quote className="h-8 w-8 text-kuyay-lime/70" />
+              {r.imageUrl ? (
+                <img
+                  src={r.imageUrl}
+                  alt={r.name}
+                  className="h-16 w-16 rounded-2xl object-cover ring-2 ring-white/25"
+                />
+              ) : (
+                <Quote className="h-8 w-8 text-kuyay-lime/70" />
+              )}
               <blockquote className="mt-4 text-sm leading-relaxed text-white/85">
                 “{r.text}”
               </blockquote>

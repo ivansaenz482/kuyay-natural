@@ -101,8 +101,12 @@ create table if not exists testimonials (
   rating     integer not null default 5,
   active     boolean not null default true,
   sort_order integer not null default 0,
+  image_url  text,
   created_at timestamptz not null default now()
 );
+
+-- Permite agregar la imagen a bases existentes
+alter table testimonials add column if not exists image_url text;
 
 -- ------------------------- Ajustes de la tienda ----------------------
 create table if not exists settings (

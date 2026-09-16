@@ -303,7 +303,9 @@ export default function AdminDashboard() {
 
   const [testimonialModal, setTestimonialModal] = useState(false)
   const [editingTestimonial, setEditingTestimonial] = useState(null)
-  const [testimonialForm, setTestimonialForm] = useState({ name: '', role: '', text: '', rating: 5, sortOrder: 0, active: true })
+  const [testimonialForm, setTestimonialForm] = useState({ name: '', role: '', text: '', rating: 5, sortOrder: 0, active: true, imageUrl: '' })
+  const [testimonialImagePreview, setTestimonialImagePreview] = useState('')
+  const [uploadingTestimonialImage, setUploadingTestimonialImage] = useState(false)
   const [savingTestimonial, setSavingTestimonial] = useState(false)
 
   const [settingsForm, setSettingsForm] = useState({
@@ -509,13 +511,40 @@ export default function AdminDashboard() {
   /* -------- Testimonials -------- */
   const openNewTestimonial = () => {
     setEditingTestimonial(null)
-    setTestimonialForm({ name: '', role: '', text: '', rating: 5, sortOrder: testimonials.length + 1, active: true })
+    setTestimonialForm({ name: '', role: '', text: '', rating: 5, sortOrder: testimonials.length + 1, active: true, imageUrl: '' })
+    setTestimonialImagePreview('')
     setTestimonialModal(true)
   }
   const openEditTestimonial = (t) => {
     setEditingTestimonial(t)
     setTestimonialForm({ ...t })
+    setTestimonialImagePreview(t.imageUrl || '')
     setTestimonialModal(true)
+  }
+  const handleTestimonialImage = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingTestimonialImage(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'testimonios')
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'No se pudo subir la imagen')
+      const url = data.urls?.[0]
+      setTestimonialForm((f) => ({ ...f, imageUrl: url }))
+      setTestimonialImagePreview(url)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setUploadingTestimonialImage(false)
+      e.target.value = ''
+    }
+  }
+  const removeTestimonialImage = () => {
+    setTestimonialForm((f) => ({ ...f, imageUrl: '' }))
+    setTestimonialImagePreview('')
   }
   const saveTestimonial = async (e) => {
     e.preventDefault()
@@ -1330,6 +1359,23 @@ export default function AdminDashboard() {
               <input className="input" type="number" value={testimonialForm.sortOrder} onChange={(e) => setTestimonialForm((f) => ({ ...f, sortOrder: e.target.value }))} />
             </div>
           </div>
+          <div>
+            <label className="label">Foto del cliente (opcional)</label>
+            <div className="flex items-center gap-3">
+              <label className="btn-ghost cursor-pointer gap-2">
+                {uploadingTestimonialImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                {uploadingTestimonialImage ? 'Subiendo…' : 'Subir imagen'}
+                <input type="file" accept="image/*" className="hidden" onChange={handleTestimonialImage} disabled={uploadingTestimonialImage} />
+              </label>
+              {testimonialImagePreview && (
+                <>
+                  <img src={testimonialImagePreview} alt="Vista previa" className="h-14 w-14 rounded-xl object-cover" />
+                  <button type="button" onClick={removeTestimonialImage} className="text-xs font-semibold text-red-600 hover:underline">Quitar</button>
+                </>
+              )}
+            </div>
+          </div>
+          <input type="hidden" name="folder" value="testimonios" />
           <label className="flex items-center gap-2 text-sm font-semibold text-kuyay-deep">
             <input type="checkbox" checked={testimonialForm.active !== false} onChange={(e) => setTestimonialForm((f) => ({ ...f, active: e.target.checked }))} />
             Visible en la tienda

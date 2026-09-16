@@ -16,6 +16,8 @@ export async function POST(req) {
     const files = form.getAll('files').length ? form.getAll('files') : [form.get('file')].filter(Boolean)
     if (!files.length) return NextResponse.json({ error: 'No se recibió ninguna imagen' }, { status: 400 })
 
+    const folder = form.get('folder') || 'productos'
+
     const urls = []
 
     for (const file of files) {
@@ -32,7 +34,7 @@ export async function POST(req) {
 
       const bytes = Buffer.from(await file.arrayBuffer())
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-      const safeName = `productos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const safeName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
       if (process.env.BLOB_READ_WRITE_TOKEN) {
         const { put } = await import('@vercel/blob')
