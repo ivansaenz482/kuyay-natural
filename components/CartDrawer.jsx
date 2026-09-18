@@ -7,6 +7,7 @@ import { formatUSD } from '../lib/whatsapp'
 import { cartWhatsAppLink } from '../lib/whatsapp'
 import WhatsAppIcon from './WhatsAppIcon'
 import CheckoutModal from './CheckoutModal'
+import OrderNotice from './OrderNotice'
 
 export default function CartDrawer() {
   const { isOpen, closeCart, items, subtotal, count, updateQty, removeItem, clear } = useCart()
@@ -145,6 +146,7 @@ export default function CartDrawer() {
                     <p className="mt-1 text-xs text-kuyay-deep/50">
                       Envío coordinado por WhatsApp según tu ubicación.
                     </p>
+                    <OrderNotice variant="compact" className="mt-3" />
                     <button
                       onClick={() => setCheckout(true)}
                       className="btn-primary mt-4 w-full"

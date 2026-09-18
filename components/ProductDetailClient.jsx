@@ -19,6 +19,7 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 import WhatsAppFloat from './WhatsAppFloat'
 import ProductCard from './ProductCard'
+import OrderNotice from './OrderNotice'
 import WhatsAppIcon from './WhatsAppIcon'
 import { formatUSD, productWhatsAppLink } from '../lib/whatsapp'
 import { useCart } from '../context/CartContext'
@@ -202,6 +203,8 @@ export default function ProductDetailClient() {
                   {product.ingredients}
                 </p>
               )}
+
+              <OrderNotice variant="inline" className="mt-6" />
 
               <div className="mt-7 flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-1 rounded-full border border-kuyay-green/15 bg-white p-1.5">

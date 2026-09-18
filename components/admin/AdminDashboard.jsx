@@ -327,6 +327,8 @@ export default function AdminDashboard() {
     socialX: '',
     heroPrice: '',
     heroImage: '',
+    orderNoticeEnabled: true,
+    orderNotice: '',
   })
   const [savingSettings, setSavingSettings] = useState(false)
   const [settingsMsg, setSettingsMsg] = useState(null)
@@ -374,6 +376,8 @@ export default function AdminDashboard() {
           socialX: s.social?.x || '',
           heroPrice: s.hero?.price ?? '',
           heroImage: s.hero?.image || '',
+          orderNoticeEnabled: s.orderNotice?.enabled ?? true,
+          orderNotice: s.orderNotice?.text ?? '',
         })
       }
     } finally {
@@ -625,6 +629,8 @@ export default function AdminDashboard() {
         socialX: settingsForm.socialX,
         heroPrice: settingsForm.heroPrice,
         heroImage: settingsForm.heroImage,
+        orderNoticeEnabled: settingsForm.orderNoticeEnabled,
+        orderNotice: settingsForm.orderNotice,
       }),
     })
     setSavingSettings(false)
@@ -1077,6 +1083,36 @@ export default function AdminDashboard() {
                             )}
                           </div>
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 border-t border-kuyay-green/10 pt-6">
+                      <h3 className="font-display text-base font-black text-kuyay-forest">
+                        Aviso de pedidos (bajo pedido)
+                      </h3>
+                      <p className="mt-1 text-xs text-kuyay-deep/50">
+                        Se muestra en el inicio, la ficha de cada producto, el carrito y el checkout.
+                      </p>
+                      <label className="mt-3 flex items-center gap-2 text-sm font-semibold text-kuyay-deep">
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.orderNoticeEnabled !== false}
+                          onChange={(e) => setSettingsForm((f) => ({ ...f, orderNoticeEnabled: e.target.checked }))}
+                        />
+                        Mostrar el aviso en la tienda
+                      </label>
+                      <div className="mt-3">
+                        <label className="label">Texto del aviso</label>
+                        <textarea
+                          className="input resize-none"
+                          rows={3}
+                          value={settingsForm.orderNotice}
+                          onChange={(e) => setSettingsForm((f) => ({ ...f, orderNotice: e.target.value }))}
+                          placeholder="Nuestros productos son naturales y se elaboran bajo pedido. Demoran aproximadamente 3 días..."
+                        />
+                        <p className="mt-1 text-xs text-kuyay-deep/45">
+                          Si lo dejas vacío, el aviso no se mostrará.
+                        </p>
                       </div>
                     </div>
 

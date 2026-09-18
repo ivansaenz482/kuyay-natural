@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext'
 import { useSettings } from '../context/SettingsContext'
 import { formatUSD, orderWhatsAppLink } from '../lib/whatsapp'
 import WhatsAppIcon from './WhatsAppIcon'
+import OrderNotice from './OrderNotice'
 
 const PAYMENT_LABELS = {
   transferencia: 'por transferencia',
@@ -203,6 +204,8 @@ export default function CheckoutModal({ open, onClose }) {
                   registrado {PAYMENT_LABELS[done.paymentMethod] || ''}.
                 </p>
 
+                <OrderNotice variant="compact" className="mt-5 text-left" />
+
                 <div className="mt-5 space-y-3">
                   {done.paymentMethod === 'transferencia' && <BankAccounts accounts={bankAccounts} />}
                   {done.paymentMethod === 'deuna' && (
@@ -315,6 +318,8 @@ export default function CheckoutModal({ open, onClose }) {
                     {error}
                   </p>
                 )}
+
+                <OrderNotice variant="compact" />
 
                 <button type="submit" disabled={submitting || !items.length} className="btn-primary w-full">
                   {submitting ? 'Procesando…' : `Confirmar pedido · ${formatUSD(subtotal)}`}

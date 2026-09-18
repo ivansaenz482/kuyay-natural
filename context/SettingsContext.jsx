@@ -13,6 +13,10 @@ const DEFAULTS = {
   payment: { deuna: { ...EMPTY_METHOD }, go: { ...EMPTY_METHOD } },
   social: EMPTY_SOCIAL,
   hero: { price: '6.50', image: '/images/kefir-natural.jpeg' },
+  orderNotice: {
+    enabled: true,
+    text: 'Nuestros productos son 100% naturales y se elaboran bajo pedido. Demoran aproximadamente 3 días en estar listos, por eso te pedimos hacer tu pedido con anticipación.',
+  },
 }
 
 const SettingsContext = createContext({ ...DEFAULTS, refresh: () => {} })
@@ -36,6 +40,10 @@ export function SettingsProvider({ children }) {
         hero: {
           price: data.hero?.price ?? '6.50',
           image: data.hero?.image || '/images/kefir-natural.jpeg',
+        },
+        orderNotice: {
+          enabled: data.orderNotice?.enabled ?? true,
+          text: data.orderNotice?.text ?? DEFAULTS.orderNotice.text,
         },
       })
     } catch {

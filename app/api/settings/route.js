@@ -32,6 +32,9 @@ function defaults() {
     social_x: process.env.NEXT_PUBLIC_SOCIAL_X || '',
     hero_price: '6.50',
     hero_image: '/images/kefir-natural.jpeg',
+    order_notice_enabled: 'true',
+    order_notice:
+      'Nuestros productos son 100% naturales y se elaboran bajo pedido. Demoran aproximadamente 3 días en estar listos, por eso te pedimos hacer tu pedido con anticipación.',
   }
 }
 
@@ -80,6 +83,10 @@ function toPublic(map) {
     hero: {
       price: map.hero_price ?? d.hero_price,
       image: map.hero_image || d.hero_image,
+    },
+    orderNotice: {
+      enabled: bool(map.order_notice_enabled),
+      text: map.order_notice ?? d.order_notice,
     },
   }
 }
@@ -136,6 +143,9 @@ export async function PUT(req) {
 
     if (body.heroPrice != null) entries.hero_price = String(body.heroPrice).trim()
     if (body.heroImage != null) entries.hero_image = String(body.heroImage).trim()
+
+    if (body.orderNoticeEnabled != null) entries.order_notice_enabled = body.orderNoticeEnabled ? 'true' : 'false'
+    if (body.orderNotice != null) entries.order_notice = String(body.orderNotice).trim()
 
     await setSettings(entries)
     return NextResponse.json(toPublic(await getSettings()))

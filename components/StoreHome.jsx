@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import Navbar from './Navbar'
 import Hero from './Hero'
 import TrustBar from './TrustBar'
+import OrderNotice from './OrderNotice'
 import ProductCarousel from './ProductCarousel'
 import ProductGrid from './ProductGrid'
 import Benefits from './Benefits'
@@ -25,6 +26,7 @@ export default function StoreHome() {
       <main>
         <Hero />
         <TrustBar />
+        <OrderNotice variant="banner" />
         <ProductCarousel products={featured} />
         <ProductGrid />
         <Benefits />
