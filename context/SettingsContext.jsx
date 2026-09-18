@@ -12,6 +12,7 @@ const DEFAULTS = {
   bankAccounts: [DEFAULT_BANK],
   payment: { deuna: { ...EMPTY_METHOD }, go: { ...EMPTY_METHOD } },
   social: EMPTY_SOCIAL,
+  hero: { price: '6.50', image: '/images/kefir-natural.jpeg' },
 }
 
 const SettingsContext = createContext({ ...DEFAULTS, refresh: () => {} })
@@ -32,6 +33,10 @@ export function SettingsProvider({ children }) {
           go: { ...EMPTY_METHOD, ...(data.payment?.go || {}) },
         },
         social: { ...EMPTY_SOCIAL, ...(data.social || {}) },
+        hero: {
+          price: data.hero?.price ?? '6.50',
+          image: data.hero?.image || '/images/kefir-natural.jpeg',
+        },
       })
     } catch {
       /* mantiene los valores por defecto */

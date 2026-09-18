@@ -1,5 +1,8 @@
+'use client'
+
 import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles, Star } from 'lucide-react'
+import { useSettings } from '../context/SettingsContext'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -17,6 +20,11 @@ const STATS = [
 ]
 
 export default function Hero() {
+  const { hero } = useSettings()
+  const heroImage = hero?.image || '/images/kefir-natural.jpeg'
+  const rawPrice = String(hero?.price || '').trim()
+  const priceLabel = rawPrice ? (rawPrice.startsWith('$') ? rawPrice : `$${rawPrice}`) : ''
+
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
       {/* Fondo con imagen real de producto */}
@@ -116,7 +124,7 @@ export default function Hero() {
           <div className="animate-float">
             <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-white/10 p-2 shadow-card backdrop-blur-xl">
               <img
-                src="/images/kefir-natural.jpeg"
+                src={heroImage}
                 alt="Kéfir artesanal natural Kuyay"
                 className="h-[26rem] w-full rounded-[1.6rem] object-cover"
               />
@@ -138,17 +146,19 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1 }}
-            className="glass absolute -right-3 bottom-12 rounded-2xl px-4 py-3 shadow-soft sm:-right-6"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wider text-kuyay-deep/50">
-              Desde
-            </p>
-            <p className="font-display text-2xl font-black text-kuyay-forest">$6.50</p>
-          </motion.div>
+          {priceLabel && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1 }}
+              className="glass absolute -right-3 bottom-12 rounded-2xl px-4 py-3 shadow-soft sm:-right-6"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-kuyay-deep/50">
+                Desde
+              </p>
+              <p className="font-display text-2xl font-black text-kuyay-forest">{priceLabel}</p>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </section>

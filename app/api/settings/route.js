@@ -30,6 +30,8 @@ function defaults() {
     social_tiktok: process.env.NEXT_PUBLIC_SOCIAL_TIKTOK || '',
     social_youtube: process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE || '',
     social_x: process.env.NEXT_PUBLIC_SOCIAL_X || '',
+    hero_price: '6.50',
+    hero_image: '/images/kefir-natural.jpeg',
   }
 }
 
@@ -74,6 +76,10 @@ function toPublic(map) {
       tiktok: map.social_tiktok ?? d.social_tiktok,
       youtube: map.social_youtube ?? d.social_youtube,
       x: map.social_x ?? d.social_x,
+    },
+    hero: {
+      price: map.hero_price ?? d.hero_price,
+      image: map.hero_image || d.hero_image,
     },
   }
 }
@@ -127,6 +133,9 @@ export async function PUT(req) {
     if (body.socialTiktok != null) entries.social_tiktok = String(body.socialTiktok).trim()
     if (body.socialYoutube != null) entries.social_youtube = String(body.socialYoutube).trim()
     if (body.socialX != null) entries.social_x = String(body.socialX).trim()
+
+    if (body.heroPrice != null) entries.hero_price = String(body.heroPrice).trim()
+    if (body.heroImage != null) entries.hero_image = String(body.heroImage).trim()
 
     await setSettings(entries)
     return NextResponse.json(toPublic(await getSettings()))

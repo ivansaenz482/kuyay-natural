@@ -325,9 +325,12 @@ export default function AdminDashboard() {
     socialTiktok: '',
     socialYoutube: '',
     socialX: '',
+    heroPrice: '',
+    heroImage: '',
   })
   const [savingSettings, setSavingSettings] = useState(false)
   const [settingsMsg, setSettingsMsg] = useState(null)
+  const [uploadingHeroImage, setUploadingHeroImage] = useState(false)
 
   const [security, setSecurity] = useState({ current: '', next: '', confirm: '', msg: null })
 
@@ -369,6 +372,8 @@ export default function AdminDashboard() {
           socialTiktok: s.social?.tiktok || '',
           socialYoutube: s.social?.youtube || '',
           socialX: s.social?.x || '',
+          heroPrice: s.hero?.price ?? '',
+          heroImage: s.hero?.image || '',
         })
       }
     } finally {
@@ -571,6 +576,25 @@ export default function AdminDashboard() {
   }
 
   /* -------- Settings -------- */
+  const handleHeroImage = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingHeroImage(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'portada')
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'No se pudo subir la imagen')
+      setSettingsForm((f) => ({ ...f, heroImage: data.urls?.[0] || '' }))
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setUploadingHeroImage(false)
+      e.target.value = ''
+    }
+  }
   const saveSettings = async (e) => {
     e.preventDefault()
     setSavingSettings(true)
@@ -599,6 +623,8 @@ export default function AdminDashboard() {
         socialTiktok: settingsForm.socialTiktok,
         socialYoutube: settingsForm.socialYoutube,
         socialX: settingsForm.socialX,
+        heroPrice: settingsForm.heroPrice,
+        heroImage: settingsForm.heroImage,
       }),
     })
     setSavingSettings(false)
@@ -1020,6 +1046,39 @@ export default function AdminDashboard() {
                         Probar el número de pedidos →
                       </a>
                     )}
+
+                    <div className="mt-8 border-t border-kuyay-green/10 pt-6">
+                      <h3 className="font-display text-base font-black text-kuyay-forest">
+                        Portada (inicio)
+                      </h3>
+                      <p className="mt-1 text-xs text-kuyay-deep/50">
+                        Imagen y precio que se muestran al inicio de la página. Deja el precio vacío para ocultarlo.
+                      </p>
+                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="label">Precio (vacío = ocultar)</label>
+                          <input
+                            className="input"
+                            value={settingsForm.heroPrice}
+                            onChange={(e) => setSettingsForm((f) => ({ ...f, heroPrice: e.target.value }))}
+                            placeholder="6.50"
+                          />
+                        </div>
+                        <div>
+                          <label className="label">Imagen de portada</label>
+                          <div className="flex items-center gap-3">
+                            <label className="btn-ghost cursor-pointer gap-2">
+                              {uploadingHeroImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                              {uploadingHeroImage ? 'Subiendo…' : 'Subir imagen'}
+                              <input type="file" accept="image/*" className="hidden" onChange={handleHeroImage} disabled={uploadingHeroImage} />
+                            </label>
+                            {settingsForm.heroImage && (
+                              <img src={settingsForm.heroImage} alt="Portada" className="h-14 w-14 rounded-xl object-cover" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="mt-8 border-t border-kuyay-green/10 pt-6">
                       <div className="flex flex-wrap items-center justify-between gap-2">
