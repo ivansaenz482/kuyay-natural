@@ -63,7 +63,10 @@ create table if not exists orders (
   customer       jsonb not null,
   total          numeric(10,2) not null default 0,
   payment_method text not null check (payment_method in ('transferencia', 'efectivo', 'deuna', 'go')),
-  status         text not null default 'pendiente',
+  status         text not null default 'por_hacer',
+  origin         text not null default 'web',
+  estimated_date date,
+  notes          text,
   created_at     timestamptz not null default now()
 );
 
@@ -71,6 +74,16 @@ create table if not exists orders (
 alter table orders drop constraint if exists orders_payment_method_check;
 alter table orders add constraint orders_payment_method_check
   check (payment_method in ('transferencia', 'efectivo', 'deuna', 'go'));
+
+-- Campos nuevos para pedidos manuales / produccion
+alter table orders add column if not exists origin text not null default 'web';
+alter table orders add column if not exists estimated_date date;
+alter table orders add column if not exists notes text;
+alter table orders alter column status set default 'por_hacer';
+
+-- Migra estados antiguos al nuevo flujo
+update orders set status = 'por_hacer' where status in ('pendiente', 'confirmado');
+update orders set status = 'por_entregar' where status = 'en_camino';
 
 create table if not exists order_items (
   id         serial primary key,

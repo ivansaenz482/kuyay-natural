@@ -4,7 +4,7 @@ import { isAdmin, unauthorized } from '@/lib/guard'
 
 export const dynamic = 'force-dynamic'
 
-const VALID = ['pendiente', 'confirmado', 'en_camino', 'entregado', 'cancelado']
+const VALID = ['por_hacer', 'por_entregar', 'entregado', 'cancelado']
 
 export async function PUT(req, { params }) {
   if (!(await isAdmin(req))) return unauthorized()

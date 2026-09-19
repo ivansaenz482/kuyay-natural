@@ -10,13 +10,12 @@ import {
   Loader2,
   PackageCheck,
   Search,
-  Truck,
   XCircle,
 } from 'lucide-react'
-import { ORDER_STATUSES, statusIndex } from '../lib/orders'
+import { ORDER_STATUSES, statusIndex, paymentLabel } from '../lib/orders'
 import { formatUSD } from '../lib/whatsapp'
 
-const ICONS = [ChefHat, CheckCircle2, Truck, PackageCheck]
+const ICONS = [ChefHat, PackageCheck, CheckCircle2]
 
 export default function OrderTracking() {
   const searchParams = useSearchParams()
@@ -173,7 +172,7 @@ export default function OrderTracking() {
               </span>
             </div>
             <p className="mt-2 text-xs text-kuyay-deep/50">
-              Pago: {order.paymentMethod === 'transferencia' ? 'Transferencia bancaria' : 'Efectivo'}
+              Pago: {paymentLabel(order.paymentMethod)}
             </p>
           </div>
         </motion.div>

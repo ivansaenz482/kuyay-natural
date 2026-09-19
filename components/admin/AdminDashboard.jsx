@@ -28,7 +28,7 @@ import {
 import { AreaChart, BarChart, StatCard } from './Charts'
 import { SOCIAL_FIELDS } from '../SocialLinks'
 import { formatUSD } from '../../lib/whatsapp'
-import { ALL_ORDER_STATUSES } from '../../lib/orders'
+import { ALL_ORDER_STATUSES, paymentLabel } from '../../lib/orders'
 import { authClient } from '../../lib/auth-client'
 
 const TABS = [
@@ -59,6 +59,21 @@ const EMPTY_PRODUCT = {
   benefitsText: '',
   ingredients: '',
   images: [],
+}
+
+const datePlus = (days) => {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+const EMPTY_ORDER = {
+  customer: { name: '', phone: '', address: '', city: '', notes: '' },
+  items: [{ productId: '', name: '', qty: 1, price: '' }],
+  paymentMethod: 'transferencia',
+  status: 'por_hacer',
+  estimatedDate: datePlus(3),
+  notes: '',
 }
 
 /* ------------------------------- Login ------------------------------- */
@@ -308,6 +323,11 @@ export default function AdminDashboard() {
   const [uploadingTestimonialImage, setUploadingTestimonialImage] = useState(false)
   const [savingTestimonial, setSavingTestimonial] = useState(false)
 
+  const [orderModal, setOrderModal] = useState(false)
+  const [orderForm, setOrderForm] = useState(EMPTY_ORDER)
+  const [savingOrder, setSavingOrder] = useState(false)
+  const [orderFilter, setOrderFilter] = useState('todos')
+
   const [settingsForm, setSettingsForm] = useState({
     whatsappPrimary: '',
     whatsappSecondary: '',
@@ -516,6 +536,82 @@ export default function AdminDashboard() {
     })
     if (!res.ok) loadAll()
   }
+
+  /* -------- Pedido manual -------- */
+  const openNewOrder = () => {
+    setOrderForm({
+      ...EMPTY_ORDER,
+      customer: { name: '', phone: '', address: '', city: '', notes: '' },
+      items: [{ productId: '', name: '', qty: 1, price: '' }],
+      estimatedDate: datePlus(3),
+    })
+    setOrderModal(true)
+  }
+  const addOrderItem = () => {
+    setOrderForm((f) => ({ ...f, items: [...f.items, { productId: '', name: '', qty: 1, price: '' }] }))
+  }
+  const updateOrderItem = (index, patch) => {
+    setOrderForm((f) => ({
+      ...f,
+      items: f.items.map((it, i) => (i === index ? { ...it, ...patch } : it)),
+    }))
+  }
+  const removeOrderItem = (index) => {
+    setOrderForm((f) => ({ ...f, items: f.items.filter((_, i) => i !== index) }))
+  }
+  const pickOrderProduct = (index, productId) => {
+    const p = products.find((x) => String(x.id) === String(productId))
+    updateOrderItem(index, { productId, name: p?.name || '', price: p ? p.price : '' })
+  }
+  const orderTotal = orderForm.items.reduce(
+    (sum, it) => sum + (Number(it.qty) || 0) * (Number(it.price) || 0),
+    0,
+  )
+  const saveOrder = async (e) => {
+    e.preventDefault()
+    const items = orderForm.items
+      .filter((it) => it.name && Number(it.qty) > 0)
+      .map((it) => ({
+        id: it.productId || null,
+        name: it.name,
+        qty: Number(it.qty),
+        price: Number(it.price) || 0,
+      }))
+    if (!orderForm.customer.name || !orderForm.customer.phone || !items.length) {
+      alert('Completa el nombre, el WhatsApp y al menos un producto.')
+      return
+    }
+    setSavingOrder(true)
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: orderForm.customer,
+          items,
+          total: orderTotal,
+          paymentMethod: orderForm.paymentMethod,
+          status: orderForm.status,
+          origin: 'manual',
+          estimatedDate: orderForm.estimatedDate || null,
+          notes: orderForm.notes,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'No se pudo guardar el pedido')
+      setOrderModal(false)
+      loadAll()
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setSavingOrder(false)
+    }
+  }
+
+  const filteredOrders =
+    orderFilter === 'todos'
+      ? orders
+      : orders.filter((o) => (o.status || 'por_hacer') === orderFilter)
 
   /* -------- Testimonials -------- */
   const openNewTestimonial = () => {
@@ -808,62 +904,116 @@ export default function AdminDashboard() {
 
               {/* -------------------- PEDIDOS -------------------- */}
               {tab === 'orders' && (
-                <div className="overflow-hidden rounded-3xl border border-kuyay-green/10 bg-white/80 shadow-soft">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[720px] text-left text-sm">
-                      <thead className="bg-kuyay-sand/60 text-xs uppercase tracking-wider text-kuyay-deep/55">
-                        <tr>
-                          <th className="px-5 py-3">Pedido</th>
-                          <th className="px-5 py-3">Cliente</th>
-                          <th className="px-5 py-3">Productos</th>
-                          <th className="px-5 py-3">Pago</th>
-                          <th className="px-5 py-3">Total</th>
-                          <th className="px-5 py-3">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {orders.map((o) => (
-                          <tr key={o.id} className="border-t border-kuyay-green/10">
-                            <td className="px-5 py-4 font-bold text-kuyay-forest">{o.id}</td>
-                            <td className="px-5 py-4">
-                              <p className="font-semibold text-kuyay-deep">{o.customer?.name}</p>
-                              <p className="text-xs text-kuyay-deep/50">{o.customer?.phone}</p>
-                            </td>
-                            <td className="px-5 py-4 text-kuyay-deep/70">
-                              {o.items?.map((i) => `${i.qty}x ${i.name}`).join(', ')}
-                            </td>
-                            <td className="px-5 py-4">
-                              <span className="rounded-full bg-kuyay-lime/50 px-3 py-1 text-xs font-bold capitalize text-kuyay-forest">
-                                {o.paymentMethod}
-                              </span>
-                            </td>
-                            <td className="px-5 py-4 font-display font-black text-kuyay-green">{formatUSD(o.total)}</td>
-                            <td className="px-5 py-4">
-                              <select
-                                value={o.status || 'pendiente'}
-                                onChange={(e) => updateStatus(o.dbId, e.target.value)}
-                                className={`rounded-full border-0 px-3 py-1.5 text-xs font-bold capitalize outline-none ring-1 ring-inset focus:ring-2 ${
-                                  o.status === 'cancelado'
-                                    ? 'bg-kuyay-berry/15 text-kuyay-berry ring-kuyay-berry/30'
-                                    : o.status === 'entregado'
-                                    ? 'bg-kuyay-green/15 text-kuyay-green ring-kuyay-green/30'
-                                    : 'bg-kuyay-lime/40 text-kuyay-forest ring-kuyay-green/20'
-                                }`}
-                              >
-                                {ALL_ORDER_STATUSES.map((s) => (
-                                  <option key={s.id} value={s.id}>{s.short || s.label}</option>
-                                ))}
-                              </select>
-                            </td>
-                          </tr>
-                        ))}
-                        {!orders.length && (
+                <div>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        ['todos', 'Todos'],
+                        ['por_hacer', 'Por hacer'],
+                        ['por_entregar', 'Por entregar'],
+                        ['entregado', 'Entregado'],
+                      ].map(([id, label]) => (
+                        <button
+                          key={id}
+                          onClick={() => setOrderFilter(id)}
+                          className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                            orderFilter === id
+                              ? 'bg-kuyay-forest text-kuyay-lime'
+                              : 'bg-kuyay-sand/70 text-kuyay-deep/60 hover:bg-kuyay-sand'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={openNewOrder} className="btn-primary">
+                      <Plus className="h-4 w-4" /> Nuevo pedido
+                    </button>
+                  </div>
+
+                  <div className="overflow-hidden rounded-3xl border border-kuyay-green/10 bg-white/80 shadow-soft">
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[860px] text-left text-sm">
+                        <thead className="bg-kuyay-sand/60 text-xs uppercase tracking-wider text-kuyay-deep/55">
                           <tr>
-                            <td colSpan={6} className="px-5 py-10 text-center text-kuyay-deep/50">Sin pedidos todavía.</td>
+                            <th className="px-5 py-3">Pedido</th>
+                            <th className="px-5 py-3">Cliente</th>
+                            <th className="px-5 py-3">Productos</th>
+                            <th className="px-5 py-3">Pago</th>
+                            <th className="px-5 py-3">Entrega</th>
+                            <th className="px-5 py-3">Total</th>
+                            <th className="px-5 py-3">Estado</th>
                           </tr>
-                        )}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {filteredOrders.map((o) => (
+                            <tr key={o.id} className="border-t border-kuyay-green/10">
+                              <td className="px-5 py-4">
+                                <p className="font-bold text-kuyay-forest">{o.id}</p>
+                                <span
+                                  className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                    o.origin === 'manual'
+                                      ? 'bg-kuyay-forest/10 text-kuyay-forest'
+                                      : 'bg-kuyay-lime/50 text-kuyay-forest'
+                                  }`}
+                                >
+                                  {o.origin === 'manual' ? 'Manual' : 'Web'}
+                                </span>
+                              </td>
+                              <td className="px-5 py-4">
+                                <p className="font-semibold text-kuyay-deep">{o.customer?.name}</p>
+                                <p className="text-xs text-kuyay-deep/50">{o.customer?.phone}</p>
+                              </td>
+                              <td className="px-5 py-4 text-kuyay-deep/70">
+                                {o.items?.map((i) => `${i.qty}x ${i.name}`).join(', ')}
+                              </td>
+                              <td className="px-5 py-4">
+                                <span className="rounded-full bg-kuyay-lime/50 px-3 py-1 text-xs font-bold text-kuyay-forest">
+                                  {paymentLabel(o.paymentMethod)}
+                                </span>
+                              </td>
+                              <td className="px-5 py-4 text-kuyay-deep/70">
+                                {o.estimatedDate
+                                  ? new Date(`${o.estimatedDate}T00:00:00`).toLocaleDateString('es-EC', {
+                                      day: '2-digit',
+                                      month: 'short',
+                                    })
+                                  : '—'}
+                              </td>
+                              <td className="px-5 py-4 font-display font-black text-kuyay-green">
+                                {formatUSD(o.total)}
+                              </td>
+                              <td className="px-5 py-4">
+                                <select
+                                  value={o.status || 'por_hacer'}
+                                  onChange={(e) => updateStatus(o.dbId, e.target.value)}
+                                  className={`rounded-full border-0 px-3 py-1.5 text-xs font-bold outline-none ring-1 ring-inset focus:ring-2 ${
+                                    o.status === 'cancelado'
+                                      ? 'bg-kuyay-berry/15 text-kuyay-berry ring-kuyay-berry/30'
+                                      : o.status === 'entregado'
+                                      ? 'bg-kuyay-green/15 text-kuyay-green ring-kuyay-green/30'
+                                      : o.status === 'por_entregar'
+                                      ? 'bg-kuyay-gold/25 text-kuyay-forest ring-kuyay-gold/40'
+                                      : 'bg-kuyay-lime/40 text-kuyay-forest ring-kuyay-green/20'
+                                  }`}
+                                >
+                                  {ALL_ORDER_STATUSES.map((s) => (
+                                    <option key={s.id} value={s.id}>{s.short || s.label}</option>
+                                  ))}
+                                </select>
+                              </td>
+                            </tr>
+                          ))}
+                          {!filteredOrders.length && (
+                            <tr>
+                              <td colSpan={7} className="px-5 py-10 text-center text-kuyay-deep/50">
+                                Sin pedidos en esta vista.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1479,6 +1629,126 @@ export default function AdminDashboard() {
             <button type="button" onClick={() => setTestimonialModal(false)} className="btn-ghost flex-1">Cancelar</button>
             <button type="submit" disabled={savingTestimonial} className="btn-primary flex-1">
               {savingTestimonial ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar testimonio'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal nuevo pedido */}
+      <Modal open={orderModal} onClose={() => setOrderModal(false)} title="Nuevo pedido manual" wide>
+        <form onSubmit={saveOrder} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label">Nombre *</label>
+              <input className="input" required value={orderForm.customer.name} onChange={(e) => setOrderForm((f) => ({ ...f, customer: { ...f.customer, name: e.target.value } }))} />
+            </div>
+            <div>
+              <label className="label">WhatsApp *</label>
+              <input className="input" required value={orderForm.customer.phone} onChange={(e) => setOrderForm((f) => ({ ...f, customer: { ...f.customer, phone: e.target.value } }))} placeholder="099 999 9999" />
+            </div>
+            <div>
+              <label className="label">Ciudad</label>
+              <input className="input" value={orderForm.customer.city} onChange={(e) => setOrderForm((f) => ({ ...f, customer: { ...f.customer, city: e.target.value } }))} />
+            </div>
+            <div>
+              <label className="label">Dirección</label>
+              <input className="input" value={orderForm.customer.address} onChange={(e) => setOrderForm((f) => ({ ...f, customer: { ...f.customer, address: e.target.value } }))} />
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="label mb-0">Productos *</label>
+              <button type="button" onClick={addOrderItem} className="btn-ghost !px-3 !py-1.5 text-xs">
+                <Plus className="h-3.5 w-3.5" /> Agregar
+              </button>
+            </div>
+            <div className="space-y-2">
+              {orderForm.items.map((it, i) => (
+                <div key={i} className="grid grid-cols-12 items-center gap-2">
+                  <select
+                    className="input col-span-5"
+                    value={it.productId}
+                    onChange={(e) => pickOrderProduct(i, e.target.value)}
+                  >
+                    <option value="">Personalizado…</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  <input
+                    className="input col-span-3"
+                    placeholder="Producto"
+                    value={it.name}
+                    onChange={(e) => updateOrderItem(i, { name: e.target.value, productId: '' })}
+                  />
+                  <input
+                    className="input col-span-1"
+                    type="number"
+                    min="1"
+                    title="Cantidad"
+                    value={it.qty}
+                    onChange={(e) => updateOrderItem(i, { qty: e.target.value })}
+                  />
+                  <input
+                    className="input col-span-2"
+                    type="number"
+                    step="0.01"
+                    placeholder="Precio"
+                    value={it.price}
+                    onChange={(e) => updateOrderItem(i, { price: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeOrderItem(i)}
+                    disabled={orderForm.items.length === 1}
+                    className="col-span-1 grid h-9 w-9 place-items-center rounded-full border border-kuyay-berry/20 text-kuyay-berry transition hover:bg-kuyay-berry hover:text-white disabled:opacity-30"
+                    aria-label="Quitar producto"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between rounded-2xl bg-kuyay-sand/60 px-4 py-3">
+              <span className="text-sm font-bold text-kuyay-forest">Total</span>
+              <span className="font-display text-xl font-black text-kuyay-green">{formatUSD(orderTotal)}</span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="label">Pago</label>
+              <select className="input" value={orderForm.paymentMethod} onChange={(e) => setOrderForm((f) => ({ ...f, paymentMethod: e.target.value }))}>
+                <option value="transferencia">Transferencia</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="deuna">DeUna</option>
+                <option value="go">GO</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Estado</label>
+              <select className="input" value={orderForm.status} onChange={(e) => setOrderForm((f) => ({ ...f, status: e.target.value }))}>
+                {ALL_ORDER_STATUSES.map((s) => (
+                  <option key={s.id} value={s.id}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label">Entrega estimada</label>
+              <input className="input" type="date" value={orderForm.estimatedDate} onChange={(e) => setOrderForm((f) => ({ ...f, estimatedDate: e.target.value }))} />
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Notas</label>
+            <textarea className="input resize-none" rows={2} value={orderForm.notes} onChange={(e) => setOrderForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Indicaciones internas o del cliente" />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={() => setOrderModal(false)} className="btn-ghost flex-1">Cancelar</button>
+            <button type="submit" disabled={savingOrder} className="btn-primary flex-1">
+              {savingOrder ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar pedido'}
             </button>
           </div>
         </form>
