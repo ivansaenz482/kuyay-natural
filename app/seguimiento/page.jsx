@@ -15,7 +15,7 @@ export default function SeguimientoPage() {
   return (
     <Providers>
       <Navbar />
-      <main className="pt-28 sm:pt-32">
+      <main className="pt-36 sm:pt-40">
         <Suspense fallback={<div className="container-x py-24 text-center text-kuyay-deep/50">Cargando…</div>}>
           <OrderTracking />
         </Suspense>

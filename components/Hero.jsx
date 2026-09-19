@@ -20,13 +20,18 @@ const STATS = [
 ]
 
 export default function Hero() {
-  const { hero } = useSettings()
+  const { hero, topNotice } = useSettings()
   const heroImage = hero?.image || '/images/kefir-natural.jpeg'
   const rawPrice = String(hero?.price || '').trim()
   const priceLabel = rawPrice ? (rawPrice.startsWith('$') ? rawPrice : `$${rawPrice}`) : ''
+  const hasTopNotice = Boolean(topNotice?.enabled && topNotice?.text)
 
   return (
-    <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
+    <section
+      className={`relative overflow-hidden pb-20 sm:pb-28 ${
+        hasTopNotice ? 'pt-40 sm:pt-48' : 'pt-32 sm:pt-40'
+      }`}
+    >
       {/* Fondo con imagen real de producto */}
       <div className="absolute inset-0 -z-10">
         <img

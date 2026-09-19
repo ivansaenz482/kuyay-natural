@@ -31,7 +31,8 @@ export default function ProductDetailClient() {
   const slug = params?.slug
   const { products, registerView } = useCatalog()
   const { addItem } = useCart()
-  const { numbers } = useSettings()
+  const { numbers, topNotice } = useSettings()
+  const hasTopNotice = Boolean(topNotice?.enabled && topNotice?.text)
   const [qty, setQty] = useState(1)
   const [active, setActive] = useState(0)
 
@@ -80,7 +81,7 @@ export default function ProductDetailClient() {
   return (
     <div className="relative">
       <Navbar />
-      <main className="pt-28 sm:pt-36">
+      <main className={hasTopNotice ? 'pt-36 sm:pt-44' : 'pt-28 sm:pt-36'}>
         <div className="container-x">
           <nav className="flex items-center gap-2 text-xs font-semibold text-kuyay-deep/50">
             <Link href="/" className="hover:text-kuyay-green">Inicio</Link>

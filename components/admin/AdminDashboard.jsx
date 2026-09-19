@@ -349,6 +349,8 @@ export default function AdminDashboard() {
     heroImage: '',
     orderNoticeEnabled: true,
     orderNotice: '',
+    topNoticeEnabled: true,
+    topNotice: '',
   })
   const [savingSettings, setSavingSettings] = useState(false)
   const [settingsMsg, setSettingsMsg] = useState(null)
@@ -398,6 +400,8 @@ export default function AdminDashboard() {
           heroImage: s.hero?.image || '',
           orderNoticeEnabled: s.orderNotice?.enabled ?? true,
           orderNotice: s.orderNotice?.text ?? '',
+          topNoticeEnabled: s.topNotice?.enabled ?? true,
+          topNotice: s.topNotice?.text ?? '',
         })
       }
     } finally {
@@ -727,6 +731,8 @@ export default function AdminDashboard() {
         heroImage: settingsForm.heroImage,
         orderNoticeEnabled: settingsForm.orderNoticeEnabled,
         orderNotice: settingsForm.orderNotice,
+        topNoticeEnabled: settingsForm.topNoticeEnabled,
+        topNotice: settingsForm.topNotice,
       }),
     })
     setSavingSettings(false)
@@ -1233,6 +1239,36 @@ export default function AdminDashboard() {
                             )}
                           </div>
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 border-t border-kuyay-green/10 pt-6">
+                      <h3 className="font-display text-base font-black text-kuyay-forest">
+                        Aviso superior (primera línea de la página)
+                      </h3>
+                      <p className="mt-1 text-xs text-kuyay-deep/50">
+                        Aparece arriba de todo en la tienda, como primer mensaje para quien entra.
+                      </p>
+                      <label className="mt-3 flex items-center gap-2 text-sm font-semibold text-kuyay-deep">
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.topNoticeEnabled !== false}
+                          onChange={(e) => setSettingsForm((f) => ({ ...f, topNoticeEnabled: e.target.checked }))}
+                        />
+                        Mostrar el aviso superior
+                      </label>
+                      <div className="mt-3">
+                        <label className="label">Texto del aviso</label>
+                        <textarea
+                          className="input resize-none"
+                          rows={2}
+                          value={settingsForm.topNotice}
+                          onChange={(e) => setSettingsForm((f) => ({ ...f, topNotice: e.target.value }))}
+                          placeholder="Kéfir y frescos: bajo pedido ~3 días. Deshidratados y té: inmediatos."
+                        />
+                        <p className="mt-1 text-xs text-kuyay-deep/45">
+                          Si lo dejas vacío, el aviso no se mostrará.
+                        </p>
                       </div>
                     </div>
 

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Leaf, Menu, ShoppingBag, X } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import TopNotice from './TopNotice'
 
 const LINKS = [
   { href: '/#productos', label: 'Productos' },
@@ -31,6 +32,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
+      <TopNotice />
       <motion.nav
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

@@ -35,6 +35,9 @@ function defaults() {
     order_notice_enabled: 'true',
     order_notice:
       'Nuestros productos son 100% naturales y se elaboran bajo pedido. Demoran aproximadamente 3 días en estar listos, por eso te pedimos hacer tu pedido con anticipación.',
+    top_notice_enabled: 'true',
+    top_notice:
+      'Kéfir y productos frescos: se elaboran bajo pedido, demoran ~3 días. Frutas deshidratadas e infusiones (té): disponibles de inmediato.',
   }
 }
 
@@ -87,6 +90,10 @@ function toPublic(map) {
     orderNotice: {
       enabled: bool(map.order_notice_enabled),
       text: map.order_notice ?? d.order_notice,
+    },
+    topNotice: {
+      enabled: bool(map.top_notice_enabled),
+      text: map.top_notice ?? d.top_notice,
     },
   }
 }
@@ -146,6 +153,9 @@ export async function PUT(req) {
 
     if (body.orderNoticeEnabled != null) entries.order_notice_enabled = body.orderNoticeEnabled ? 'true' : 'false'
     if (body.orderNotice != null) entries.order_notice = String(body.orderNotice).trim()
+
+    if (body.topNoticeEnabled != null) entries.top_notice_enabled = body.topNoticeEnabled ? 'true' : 'false'
+    if (body.topNotice != null) entries.top_notice = String(body.topNotice).trim()
 
     await setSettings(entries)
     return NextResponse.json(toPublic(await getSettings()))

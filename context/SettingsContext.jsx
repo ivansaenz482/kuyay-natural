@@ -17,6 +17,10 @@ const DEFAULTS = {
     enabled: true,
     text: 'Nuestros productos son 100% naturales y se elaboran bajo pedido. Demoran aproximadamente 3 días en estar listos, por eso te pedimos hacer tu pedido con anticipación.',
   },
+  topNotice: {
+    enabled: true,
+    text: 'Kéfir y productos frescos: se elaboran bajo pedido, demoran ~3 días. Frutas deshidratadas e infusiones (té): disponibles de inmediato.',
+  },
 }
 
 const SettingsContext = createContext({ ...DEFAULTS, refresh: () => {} })
@@ -44,6 +48,10 @@ export function SettingsProvider({ children }) {
         orderNotice: {
           enabled: data.orderNotice?.enabled ?? true,
           text: data.orderNotice?.text ?? DEFAULTS.orderNotice.text,
+        },
+        topNotice: {
+          enabled: data.topNotice?.enabled ?? true,
+          text: data.topNotice?.text ?? DEFAULTS.topNotice.text,
         },
       })
     } catch {
