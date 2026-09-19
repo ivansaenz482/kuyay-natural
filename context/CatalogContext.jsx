@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { getVisitorId, isAdminBrowser } from '../lib/visitor'
 
 const CatalogContext = createContext(null)
 
@@ -33,9 +34,15 @@ export function CatalogProvider({ children }) {
   }, [refresh])
 
   const registerView = useCallback(async (id) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, views: (p.views || 0) + 1 } : p)))
+    if (isAdminBrowser()) return
+    const visitorId = getVisitorId()
+    if (!visitorId) return
     try {
-      await fetch(`/api/products/${id}/view`, { method: 'POST' })
+      await fetch(`/api/products/${id}/view`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visitorId }),
+      })
     } catch {
       /* silencioso */
     }

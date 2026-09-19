@@ -87,10 +87,26 @@ create index if not exists order_items_order_idx on order_items(order_id);
 create table if not exists page_views (
   id         bigserial primary key,
   path       text default '/',
+  visitor_id text,
   created_at timestamptz not null default now()
 );
 
+-- Permite agregar el visitante a bases existentes
+alter table page_views add column if not exists visitor_id text;
+
 create index if not exists page_views_created_idx on page_views(created_at);
+create index if not exists page_views_visitor_idx on page_views(visitor_id, created_at);
+
+-- -------- Vistas de producto por visitante (para no inflar) ----------
+create table if not exists product_view_events (
+  id         serial primary key,
+  product_id integer not null references products(id) on delete cascade,
+  visitor_id text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists product_view_events_idx
+  on product_view_events(product_id, visitor_id, created_at);
 
 -- ----------------------------- Testimonios ---------------------------
 create table if not exists testimonials (

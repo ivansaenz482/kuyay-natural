@@ -22,6 +22,7 @@ const pool = new pg.Pool({
 
 try {
   await pool.query('truncate table page_views restart identity')
+  await pool.query('truncate table product_view_events restart identity')
   await pool.query('update products set views = 0, sales = 0')
   console.log('✅ Vistas de la pagina y productos comprados/vistos reiniciados a 0.')
   console.log('   (Los pedidos e ingresos no se modificaron.)')
