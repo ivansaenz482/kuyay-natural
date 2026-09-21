@@ -127,7 +127,7 @@ export default function Contact() {
                 </div>
 
                 {bankAccounts?.length > 0 && (
-                  <div className="mt-5 border-t border-kuyay-green/10 pt-4">
+                  <div id="pagos" className="mt-5 scroll-mt-32 border-t border-kuyay-green/10 pt-4">
                     <p className="text-sm font-bold text-kuyay-forest">
                       Cuentas para transferencia
                     </p>

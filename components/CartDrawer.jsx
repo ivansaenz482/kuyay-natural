@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react'
+import { CreditCard, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { useSettings } from '../context/SettingsContext'
@@ -160,6 +160,13 @@ export default function CartDrawer() {
                       className="btn mt-2 w-full bg-[#25D366] text-white hover:bg-[#1ebe5b]"
                     >
                       <WhatsAppIcon className="h-4 w-4" /> Pedir por WhatsApp
+                    </a>
+                    <a
+                      href="/#pagos"
+                      onClick={closeCart}
+                      className="btn-ghost mt-2 w-full"
+                    >
+                      <CreditCard className="h-4 w-4" /> Ver cuentas para transferir
                     </a>
                   </div>
                 </>
