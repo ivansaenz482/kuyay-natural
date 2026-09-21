@@ -1,11 +1,37 @@
-import { motion } from 'framer-motion'
-import { Clock, MapPin, Phone } from 'lucide-react'
+'use client'
+
+import { useState } from 'react'
+import { Check, Clock, Copy, MapPin, Phone } from 'lucide-react'
 import { useSettings } from '../context/SettingsContext'
 import { formatPhone } from '../lib/whatsapp'
 import WhatsAppIcon from './WhatsAppIcon'
 
+function CopyButton({ value }) {
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      /* noop */
+    }
+  }
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label="Copiar"
+      className="text-kuyay-deep/40 transition hover:text-kuyay-green"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-kuyay-green" /> : <Copy className="h-3.5 w-3.5" />}
+    </button>
+  )
+}
+
 export default function Contact() {
-  const { numbers } = useSettings()
+  const { numbers, bankAccounts } = useSettings()
+  const whatsapp = numbers[0]
   return (
     <section id="contacto" className="relative py-20 sm:py-28">
       <div className="container-x">
@@ -83,7 +109,7 @@ export default function Contact() {
                   <div>
                     <p className="text-sm font-bold text-kuyay-forest">Entrega</p>
                     <p className="text-sm text-kuyay-deep/60">
-                      Entrega local el mismo día y envíos coordinados a todo el país.
+                      Entregas locales y envíos coordinados a todo el país.
                     </p>
                   </div>
                 </div>
@@ -91,7 +117,7 @@ export default function Contact() {
 
               <div className="mt-8 rounded-2xl border border-kuyay-green/10 bg-kuyay-sand/50 p-5">
                 <p className="text-sm font-bold text-kuyay-forest">Métodos de pago</p>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <span className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-kuyay-green shadow-soft">
                     Transferencia bancaria
                   </span>
@@ -99,6 +125,73 @@ export default function Contact() {
                     Efectivo
                   </span>
                 </div>
+
+                {bankAccounts?.length > 0 && (
+                  <div className="mt-5 border-t border-kuyay-green/10 pt-4">
+                    <p className="text-sm font-bold text-kuyay-forest">
+                      Cuentas para transferencia
+                    </p>
+                    <p className="mt-1 text-xs text-kuyay-deep/50">
+                      Transfiere a cualquiera de estas cuentas y envíanos el comprobante por WhatsApp.
+                    </p>
+
+                    <div className="mt-3 space-y-3">
+                      {bankAccounts.map((a, i) => (
+                        <div key={i} className="rounded-2xl bg-white p-4 shadow-soft">
+                          <p className="text-sm font-bold text-kuyay-forest">
+                            {a.banco || 'Cuenta bancaria'}
+                            {bankAccounts.length > 1 ? ` #${i + 1}` : ''}
+                          </p>
+                          <dl className="mt-2 space-y-1.5 text-sm text-kuyay-deep/70">
+                            {a.tipo && (
+                              <div className="flex justify-between gap-3">
+                                <dt>Tipo</dt>
+                                <dd className="font-semibold text-kuyay-forest">{a.tipo}</dd>
+                              </div>
+                            )}
+                            {a.numero && (
+                              <div className="flex justify-between gap-3">
+                                <dt>Cuenta</dt>
+                                <dd className="flex items-center gap-2 font-semibold text-kuyay-forest">
+                                  {a.numero}
+                                  <CopyButton value={a.numero} />
+                                </dd>
+                              </div>
+                            )}
+                            {a.titular && (
+                              <div className="flex justify-between gap-3">
+                                <dt>Titular</dt>
+                                <dd className="font-semibold text-kuyay-forest">{a.titular}</dd>
+                              </div>
+                            )}
+                            {a.identificacion && (
+                              <div className="flex justify-between gap-3">
+                                <dt>RUC / CI</dt>
+                                <dd className="flex items-center gap-2 font-semibold text-kuyay-forest">
+                                  {a.identificacion}
+                                  <CopyButton value={a.identificacion} />
+                                </dd>
+                              </div>
+                            )}
+                          </dl>
+                        </div>
+                      ))}
+                    </div>
+
+                    {whatsapp && (
+                      <a
+                        href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(
+                          '¡Hola Kuyay Natural! 🌿 Ya realicé la transferencia, les envío el comprobante.',
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn mt-4 w-full bg-[#25D366] text-white hover:-translate-y-0.5 hover:bg-[#1ebe5b]"
+                      >
+                        <WhatsAppIcon className="h-4 w-4" /> Enviar comprobante por WhatsApp
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
