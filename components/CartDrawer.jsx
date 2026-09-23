@@ -166,7 +166,7 @@ export default function CartDrawer() {
                       onClick={closeCart}
                       className="btn-ghost mt-2 w-full"
                     >
-                      <CreditCard className="h-4 w-4" /> Ver cuentas para transferir
+                      <CreditCard className="h-4 w-4" /> Consultar formas de pago
                     </a>
                   </div>
                 </>
