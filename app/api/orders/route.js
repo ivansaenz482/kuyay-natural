@@ -55,7 +55,9 @@ export async function POST(req) {
 
     const status = admin && VALID_STATUSES.includes(body.status) ? body.status : 'por_hacer'
     const origin = admin && body.origin ? String(body.origin).slice(0, 20) : 'web'
-    const estimatedDate = admin && body.estimatedDate ? body.estimatedDate : null
+    const estimatedDate = /^\d{4}-\d{2}-\d{2}$/.test(String(body.estimatedDate || ''))
+      ? String(body.estimatedDate)
+      : null
     const notes =
       admin && body.notes ? String(body.notes).slice(0, 500) : customer.notes || null
 

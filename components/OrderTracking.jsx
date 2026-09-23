@@ -174,6 +174,16 @@ export default function OrderTracking() {
             <p className="mt-2 text-xs text-kuyay-deep/50">
               Pago: {paymentLabel(order.paymentMethod)}
             </p>
+            {order.estimatedDate && (
+              <p className="mt-1 text-xs text-kuyay-deep/50">
+                Entrega programada:{' '}
+                {new Date(`${order.estimatedDate}T00:00:00`).toLocaleDateString('es-EC', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </p>
+            )}
           </div>
         </motion.div>
       )}

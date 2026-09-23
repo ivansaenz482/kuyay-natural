@@ -98,7 +98,7 @@ export default function Contact() {
                     Transferencia bancaria
                   </span>
                   <span className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-kuyay-green shadow-soft">
-                    Efectivo
+                    Pago al recibir el pedido
                   </span>
                 </div>
                 <p className="mt-4 text-xs text-kuyay-deep/55">

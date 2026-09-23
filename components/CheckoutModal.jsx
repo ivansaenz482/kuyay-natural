@@ -9,12 +9,25 @@ import OrderNotice from './OrderNotice'
 
 const PAYMENT_LABELS = {
   transferencia: 'por transferencia',
-  efectivo: 'en efectivo',
+  efectivo: 'al recibir el pedido',
   deuna: 'con DeUna',
   go: 'con GO',
 }
 
-const initialForm = { name: '', phone: '', address: '', city: '', notes: '' }
+const datePlus = (days) => {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+const initialForm = () => ({
+  name: '',
+  phone: '',
+  address: '',
+  city: '',
+  notes: '',
+  deliveryDate: datePlus(3),
+})
 
 function CopyRow({ label, value }) {
   const [copied, setCopied] = useState(false)
@@ -92,6 +105,8 @@ export default function CheckoutModal({ open, onClose }) {
   const [done, setDone] = useState(null)
   const [error, setError] = useState('')
 
+  const today = new Date().toISOString().slice(0, 10)
+
   const methods = useMemo(() => {
     const list = [
       {
@@ -100,7 +115,7 @@ export default function CheckoutModal({ open, onClose }) {
         desc: bankAccounts.length > 1 ? `${bankAccounts.length} cuentas disponibles` : 'Datos de la cuenta al confirmar',
         icon: Building2,
       },
-      { id: 'efectivo', title: 'Efectivo', desc: 'Pagas al recibir tu pedido.', icon: Banknote },
+      { id: 'efectivo', title: 'Pago al recibir el pedido', desc: 'Cancelas al momento de la entrega.', icon: Banknote },
     ]
     if (paymentCfg?.deuna?.enabled) {
       list.push({ id: 'deuna', title: 'DeUna', desc: 'Paga con la app DeUna.', icon: Smartphone })
@@ -114,7 +129,7 @@ export default function CheckoutModal({ open, onClose }) {
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const reset = () => {
-    setForm(initialForm)
+    setForm(initialForm())
     setPayment('transferencia')
     setDone(null)
     setError('')
@@ -142,6 +157,7 @@ export default function CheckoutModal({ open, onClose }) {
           items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
           total: subtotal,
           paymentMethod: payment,
+          estimatedDate: form.deliveryDate,
         }),
       })
       const order = await res.json()
@@ -204,6 +220,19 @@ export default function CheckoutModal({ open, onClose }) {
                   registrado {PAYMENT_LABELS[done.paymentMethod] || ''}.
                 </p>
 
+                {done.estimatedDate && (
+                  <p className="mt-2 text-sm text-kuyay-deep/65">
+                    Entrega programada:{' '}
+                    <span className="font-bold text-kuyay-forest">
+                      {new Date(`${done.estimatedDate}T00:00:00`).toLocaleDateString('es-EC', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </p>
+                )}
+
                 <OrderNotice variant="compact" className="mt-5 text-left" />
 
                 <div className="mt-5 space-y-3">
@@ -264,6 +293,13 @@ export default function CheckoutModal({ open, onClose }) {
                   <div className="sm:col-span-2">
                     <label className="label" htmlFor="address">Dirección de entrega *</label>
                     <input id="address" className="input" value={form.address} onChange={set('address')} placeholder="Calle, número, referencia" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="label" htmlFor="deliveryDate">Fecha de entrega programada</label>
+                    <input id="deliveryDate" type="date" className="input" min={today} value={form.deliveryDate} onChange={set('deliveryDate')} />
+                    <p className="mt-1 text-xs text-kuyay-deep/45">
+                      Elige cuándo quieres recibirlo. Los kéfir y frescos se elaboran bajo pedido (~3 días).
+                    </p>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="label" htmlFor="notes">Notas (opcional)</label>
