@@ -10,6 +10,7 @@ import ProductGrid from './ProductGrid'
 import Benefits from './Benefits'
 import Story from './Story'
 import Testimonials from './Testimonials'
+import PaymentSection from './PaymentSection'
 import Contact from './Contact'
 import ShareSection from './ShareSection'
 import Footer from './Footer'
@@ -32,6 +33,7 @@ export default function StoreHome() {
         <Benefits />
         <Story />
         <Testimonials />
+        <PaymentSection />
         <Contact />
         <ShareSection />
       </main>

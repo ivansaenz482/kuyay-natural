@@ -7,7 +7,6 @@ import WhatsAppIcon from './WhatsAppIcon'
 
 export default function Contact() {
   const { numbers } = useSettings()
-  const whatsapp = numbers[0]
   return (
     <section id="contacto" className="relative py-20 sm:py-28">
       <div className="container-x">
@@ -89,34 +88,6 @@ export default function Contact() {
                     </p>
                   </div>
                 </div>
-              </div>
-
-              <div id="pagos" className="mt-8 scroll-mt-32 rounded-2xl border border-kuyay-green/10 bg-kuyay-sand/50 p-5">
-                <p className="text-sm font-bold text-kuyay-forest">Métodos de pago</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-kuyay-green shadow-soft">
-                    Transferencia bancaria
-                  </span>
-                  <span className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-kuyay-green shadow-soft">
-                    Pago al recibir el pedido
-                  </span>
-                </div>
-                <p className="mt-4 text-xs text-kuyay-deep/55">
-                  Escríbenos y con gusto te compartimos las formas de pago y los datos de las
-                  cuentas bancarias.
-                </p>
-                {whatsapp && (
-                  <a
-                    href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(
-                      '¡Hola Kuyay Natural! 🌿 Quisiera conocer las formas de pago y los datos de las cuentas bancarias, por favor.',
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn mt-4 w-full bg-[#25D366] text-white hover:-translate-y-0.5 hover:bg-[#1ebe5b]"
-                  >
-                    <WhatsAppIcon className="h-4 w-4" /> Solicitar formas de pago
-                  </a>
-                )}
               </div>
             </div>
           </div>
